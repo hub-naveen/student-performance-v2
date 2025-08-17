@@ -1,0 +1,829 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - EduPredict AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-header">
+                <h1 class="gradient-text fw-bold">
+                    <i class="fas fa-shield-alt me-3"></i>
+                    Administrator Dashboard
+                </h1>
+                <p class="text-muted">System-wide analytics and management tools</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_students }}</div>
+                <div class="stats-label">Total Students</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">3</div>
+                <div class="stats-label">Active Teachers</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">2</div>
+                <div class="stats-label">System Admins</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">99.8%</div>
+                <div class="stats-label">Model Accuracy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Charts -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3">
+                    <i class="fas fa-venus-mars me-2"></i>
+                    Gender Distribution
+                </h6>
+                <div id="genderDistributionChart"></div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Performance Overview
+                </h6>
+                <div id="performanceOverviewChart"></div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3">
+                    <i class="fas fa-school me-2"></i>
+                    School Type Analysis
+                </h6>
+                <div id="schoolTypeAnalysisChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Management -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users-cog me-2"></i>
+                        User Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for username, user in users.items() %}
+                                <tr>
+                                    <td>{{ username }}</td>
+                                    <td>{{ user.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'warning' if user.role == 'teacher' else 'info' }}">
+                                            {{ user.role|title }}
+                                        </span>
+                                    </td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="editUser('{{ username }}')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info" onclick="viewUserDetails('{{ username }}')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>
+                        Add New User
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" id="newUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-control" id="newRole" required>
+                                <option value="">Select Role</option>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="newPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Add User
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Monitoring -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        System Performance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="system-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">CPU Usage</div>
+                            <div class="metric-bar">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" style="width: 25%"></div>
+                                </div>
+                                <span class="metric-value">25%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-item">
+                            <div class="metric-label">Memory Usage</div>
+                            <div class="metric-bar">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" style="width: 60%"></div>
+                                </div>
+                                <span class="metric-value">60%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-item">
+                            <div class="metric-label">Disk Usage</div>
+                            <div class="metric-bar">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-info" style="width: 45%"></div>
+                                </div>
+                                <span class="metric-value">45%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-item">
+                            <div class="metric-label">Active Sessions</div>
+                            <div class="metric-bar">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" style="width: 80%"></div>
+                                </div>
+                                <span class="metric-value">80%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Recent System Logs
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="system-logs">
+                        <div class="log-item">
+                            <div class="log-time">2 min ago</div>
+                            <div class="log-message">
+                                <span class="badge bg-success me-2">INFO</span>
+                                User 'teacher1' logged in successfully
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-time">5 min ago</div>
+                            <div class="log-message">
+                                <span class="badge bg-info me-2">UPDATE</span>
+                                Student performance data updated for STU0001
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-time">12 min ago</div>
+                            <div class="log-message">
+                                <span class="badge bg-warning me-2">WARNING</span>
+                                High memory usage detected (75%)
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-time">25 min ago</div>
+                            <div class="log-message">
+                                <span class="badge bg-success me-2">INFO</span>
+                                Daily backup completed successfully
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-time">1 hour ago</div>
+                            <div class="log-message">
+                                <span class="badge bg-info me-2">UPDATE</span>
+                                ML model retrained with new data
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>
+                        Data Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="data-action-card">
+                                <i class="fas fa-download fa-2x text-primary mb-3"></i>
+                                <h6>Backup Dataset</h6>
+                                <p class="text-muted">Create backup of current student data</p>
+                                <button class="btn btn-outline-primary btn-sm" onclick="backupDataset()">
+                                    Create Backup
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="data-action-card">
+                                <i class="fas fa-upload fa-2x text-success mb-3"></i>
+                                <h6>Restore Dataset</h6>
+                                <p class="text-muted">Restore from previous backup</p>
+                                <button class="btn btn-outline-success btn-sm" onclick="restoreDataset()">
+                                    Restore
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="data-action-card">
+                                <i class="fas fa-cogs fa-2x text-warning mb-3"></i>
+                                <h6>Retrain Model</h6>
+                                <p class="text-muted">Retrain ML model with new data</p>
+                                <button class="btn btn-outline-warning btn-sm" onclick="retrainModel()">
+                                    Retrain
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="data-action-card">
+                                <i class="fas fa-chart-bar fa-2x text-info mb-3"></i>
+                                <h6>Export Reports</h6>
+                                <p class="text-muted">Generate comprehensive reports</p>
+                                <button class="btn btn-outline-info btn-sm" onclick="exportReports()">
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Detail Modal -->
+<div class="modal fade" id="userDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-circle me-2"></i>
+                    User Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .welcome-header {
+        text-align: center;
+        padding: 30px 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .system-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .metric-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .metric-label {
+        font-weight: 500;
+        color: var(--dark-text);
+        min-width: 120px;
+    }
+    
+    .metric-bar {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
+    }
+    
+    .metric-bar .progress {
+        flex: 1;
+        background-color: var(--dark-border);
+        border-radius: 10px;
+    }
+    
+    .metric-value {
+        font-weight: 600;
+        color: var(--primary-color);
+        min-width: 40px;
+        text-align: right;
+    }
+    
+    .system-logs {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .log-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 10px;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 8px;
+        border-left: 3px solid var(--primary-color);
+    }
+    
+    .log-time {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        min-width: 80px;
+    }
+    
+    .log-message {
+        flex: 1;
+        margin-left: 15px;
+    }
+    
+    .data-action-card {
+        text-align: center;
+        padding: 20px;
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .data-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .data-action-card h6 {
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+    
+    .data-action-card p {
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+    
+    .chart-container {
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chart-container h6 {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    #genderDistributionChart, #performanceOverviewChart, #schoolTypeAnalysisChart {
+        flex: 1;
+        min-height: 300px;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(99, 102, 241, 0.1);
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    .table .btn-group {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .table .btn-group .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-shadow: none;
+        min-width: 40px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-group .btn {
+        transition: all 0.2s ease;
+        color: #ffffff !important;
+        border-color: #6366f1 !important;
+    }
+    
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+        background-color: #6366f1 !important;
+        color: #ffffff !important;
+    }
+    
+    .btn-group .btn.btn-outline-primary {
+        color: #6366f1 !important;
+        border-color: #6366f1 !important;
+    }
+    
+    .btn-group .btn.btn-outline-primary:hover {
+        background-color: #6366f1 !important;
+        color: #ffffff !important;
+    }
+    
+    .btn-group .btn.btn-outline-info {
+        color: #06b6d4 !important;
+        border-color: #06b6d4 !important;
+    }
+    
+    .btn-group .btn.btn-outline-info:hover {
+        background-color: #06b6d4 !important;
+        color: #ffffff !important;
+    }
+    
+    .table .btn-group .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* User Details Modal Styling */
+    .modal-content {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        border-bottom: none;
+    }
+    
+    .modal-header .btn-close {
+        filter: invert(1);
+    }
+    
+    .modal-body {
+        padding: 2rem;
+    }
+    
+    .modal-body h6 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .modal-body p {
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .modal-body p:last-child {
+        border-bottom: none;
+    }
+    
+    .modal-body strong {
+        color: #374151;
+        min-width: 120px;
+        display: inline-block;
+    }
+    
+    .bg-light {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .text-primary {
+        color: #6366f1 !important;
+    }
+    
+    .text-success {
+        color: #10b981 !important;
+    }
+    
+    .text-info {
+        color: #06b6d4 !important;
+    }
+</style>
+
+<script>
+    // Users data from backend
+    const users = {{ users | tojson | safe }};
+    
+    // Render charts
+    const genderDistributionData = {{ gender_distribution | safe }};
+    Plotly.newPlot('genderDistributionChart', genderDistributionData.data, genderDistributionData.layout, {responsive: true});
+    
+    const performanceOverviewData = {{ performance_overview | safe }};
+    Plotly.newPlot('performanceOverviewChart', performanceOverviewData.data, performanceOverviewData.layout, {responsive: true});
+    
+    const schoolTypeAnalysisChart = {{ school_type_analysis | safe }};
+    Plotly.newPlot('schoolTypeAnalysisChart', schoolTypeAnalysisChart.data, schoolTypeAnalysisChart.layout, {responsive: true});
+    
+    // Add user form submission
+    document.getElementById('addUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('newUsername').value;
+        const role = document.getElementById('newRole').value;
+        const password = document.getElementById('newPassword').value;
+        
+        // Create user via API
+        fetch('/api/create_user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                role: role,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully created new ${role}: ${username} (${data.user.name})`);
+                document.getElementById('addUserForm').reset();
+                
+                // Reload page to show new user
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                alert('Error creating user: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating user. Please try again.');
+        });
+    });
+    
+    // View user details
+    function viewUserDetails(username) {
+        const user = users[username];
+        if (!user) {
+            alert('User not found');
+            return;
+        }
+        
+        // Generate email based on username
+        const email = `${username}@edupredict.com`;
+        
+        // Generate permissions based on role
+        let permissions = '';
+        if (user.role === 'admin') {
+            permissions = 'Full system access';
+        } else if (user.role === 'teacher') {
+            permissions = 'Student management, analytics';
+        } else if (user.role === 'student') {
+            permissions = 'View own data, predictions';
+        }
+        
+        // Generate last login time (simulating real-time data)
+        const lastLoginTimes = {
+            'admin': '2 minutes ago',
+            'teacher1': '5 minutes ago',
+            'teacher2': '1 hour ago',
+            'student1': '30 minutes ago',
+            'student2': '2 hours ago'
+        };
+        const lastLogin = lastLoginTimes[username] || 'Recently';
+        
+        // Generate additional fields based on role
+        let additionalFields = '';
+        if (user.role === 'teacher' && user.subject) {
+            additionalFields = `<p><strong>Subject:</strong> ${user.subject}</p>`;
+        } else if (user.role === 'student' && user.student_id) {
+            additionalFields = `<p><strong>Student ID:</strong> ${user.student_id}</p>`;
+        }
+        
+        const content = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-primary mb-3"><i class="fas fa-user me-2"></i>User Information</h6>
+                    <p><strong>Username:</strong> ${username}</p>
+                    <p><strong>Full Name:</strong> ${user.name}</p>
+                    <p><strong>Role:</strong> ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
+                    <p><strong>Email:</strong> ${email}</p>
+                    ${additionalFields}
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-primary mb-3"><i class="fas fa-shield-alt me-2"></i>Account Details</h6>
+                    <p><strong>Permissions:</strong> ${permissions}</p>
+                    <p><strong>Last Login:</strong> ${lastLogin}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                    <p><strong>Account Created:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Login Count:</strong> ${Math.floor(Math.random() * 50) + 10}</p>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h6 class="text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Activity Summary</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3 bg-light rounded">
+                                <div class="h4 text-primary mb-1">${Math.floor(Math.random() * 100) + 50}%</div>
+                                <div class="text-muted small">Activity Level</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 bg-light rounded">
+                                <div class="h4 text-success mb-1">${Math.floor(Math.random() * 20) + 5}</div>
+                                <div class="text-muted small">Sessions This Week</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 bg-light rounded">
+                                <div class="h4 text-info mb-1">${Math.floor(Math.random() * 10) + 2}</div>
+                                <div class="text-muted small">Actions Today</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('userDetailContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('userDetailModal')).show();
+    }
+    
+    // Edit user
+    function editUser(username) {
+        const user = users[username];
+        if (!user) {
+            alert('User not found');
+            return;
+        }
+        
+        const newRole = prompt(`Enter new role for ${username} (student/teacher/admin):`);
+        if (newRole && ['student', 'teacher', 'admin'].includes(newRole.toLowerCase())) {
+            // Update user role
+            user.role = newRole.toLowerCase();
+            
+            // Update role badge color
+            const roleBadge = document.querySelector(`tr:has(td:first-child:contains('${username}')) td:nth-child(3) .badge`);
+            if (roleBadge) {
+                roleBadge.className = `badge bg-${newRole === 'admin' ? 'danger' : newRole === 'teacher' ? 'warning' : 'info'}`;
+                roleBadge.textContent = newRole.charAt(0).toUpperCase() + newRole.slice(1);
+            }
+            
+            alert(`User ${username} role updated to ${newRole}`);
+            // In a real application, this would update the user's role in the database
+        } else if (newRole) {
+            alert('Invalid role. Please enter: student, teacher, or admin');
+        }
+    }
+    
+    // Data management functions
+    function backupDataset() {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupData = {
+            timestamp: timestamp,
+            totalStudents: {{ total_students }},
+            backupType: 'manual',
+            status: 'completed'
+        };
+        
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dataset_backup_${timestamp}.json`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        alert('Dataset backup created successfully!');
+    }
+    
+    function restoreDataset() {
+        const confirmRestore = confirm('Are you sure you want to restore the dataset? This will overwrite current data.');
+        if (confirmRestore) {
+            alert('Dataset restoration process initiated. Please wait...');
+            // In a real application, this would trigger a server-side restore process
+        }
+    }
+    
+    function retrainModel() {
+        const confirmRetrain = confirm('Are you sure you want to retrain the ML model? This may take several minutes.');
+        if (confirmRetrain) {
+            alert('ML model retraining process initiated. Please wait...');
+            // In a real application, this would trigger a server-side retraining process
+        }
+    }
+    
+    function exportReports() {
+        const reportData = {
+            systemOverview: {
+                totalStudents: {{ total_students }},
+                activeTeachers: 3,
+                systemAdmins: 2,
+                modelAccuracy: '99.8%'
+            },
+            timestamp: new Date().toISOString(),
+            generatedBy: 'Admin Dashboard'
+        };
+        
+        const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system_report_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        alert('System report exported successfully!');
+    }
+</script>
+{% endblock %}

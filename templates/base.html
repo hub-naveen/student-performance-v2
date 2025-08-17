@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Performance Prediction System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --dark-text: #e2e8f0;
+            --dark-border: #334155;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e1b4b 100%);
+            color: var(--dark-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .navbar {
+            background: rgba(15, 23, 42, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--dark-border);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            border: none;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 10px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-outline-light {
+            border: 2px solid var(--dark-border);
+            color: var(--dark-text);
+            border-radius: 10px;
+            padding: 8px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-light:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        /* Enhanced button variants */
+        .btn-outline-primary {
+            border-color: #6366f1;
+            color: #6366f1;
+            background: transparent;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-color: #6366f1;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-outline-warning {
+            border-color: #f59e0b;
+            color: #f59e0b;
+            background: transparent;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .btn-outline-warning:hover {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #f59e0b;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-outline-info {
+            border-color: #06b6d4;
+            color: #06b6d4;
+            background: transparent;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .btn-outline-info:hover {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            border-color: #06b6d4;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
+        }
+        
+        .btn-outline-success {
+            border-color: #10b981;
+            color: #10b981;
+            background: transparent;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .btn-outline-success:hover {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .form-control {
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            color: var(--dark-text);
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            background: var(--dark-card);
+            border-color: var(--primary-color);
+            color: var(--dark-text);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        }
+        
+        .form-control::placeholder {
+            color: #64748b;
+        }
+        
+        .table {
+            color: var(--dark-text);
+        }
+        
+        /* Base table styling - can be overridden by specific pages */
+        .table {
+            color: var(--dark-text);
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .table th {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            border-color: #4b5563;
+            color: #f9fafb;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.875rem;
+            padding: 15px 12px;
+        }
+        
+        .table td {
+            border-color: #4b5563;
+            padding: 12px;
+            vertical-align: middle;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border-left-color: #6366f1;
+            transform: translateX(5px);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-left: 4px solid #10b981;
+        }
+        
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--dark-card), #2d3748);
+            border: 1px solid var(--dark-border);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stats-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        
+        .chart-container {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .floating-card {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Enhanced Badge Styling */
+        .badge {
+            font-weight: 600;
+            padding: 0.5em 0.75em;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .badge.bg-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+        }
+        
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        }
+        
+        .badge.bg-info {
+            background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
+        }
+        
+        .badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sidebar {
+            background: var(--dark-card);
+            border-right: 1px solid var(--dark-border);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--dark-text);
+            padding: 12px 20px;
+            margin: 5px 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .stats-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>
+                EduPredict AI
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="navbar-text me-3">
+                                <i class="fas fa-user me-2"></i>
+                                {{ current_user.name }}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>
+                                Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="btn btn-primary" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script>
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Add loading animations
+        window.addEventListener('load', function() {
+            document.body.classList.add('loaded');
+        });
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,1225 @@
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+import pandas as pd
+import numpy as np
+import pickle
+import os
+import json
+from datetime import datetime
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.utils
+from io import BytesIO
+import base64
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+app = Flask(__name__, template_folder='../templates')
+app.config['SECRET_KEY'] = 'your-secret-key-here'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# Load the dataset
+df = pd.read_csv('data/StudentPerformance_with_names.csv')
+
+# Load the trained model
+try:
+    with open('models/random_forest_student_performance_model.pkl', 'rb') as f:
+        model = pickle.load(f)
+    print("Loaded pre-trained model successfully")
+except:
+    print("Creating new model compatible with current feature set...")
+    # If model file doesn't exist or is incompatible, create a new one for demo
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.preprocessing import LabelEncoder
+    
+    # Prepare data for training
+    le = LabelEncoder()
+    df_encoded = df.copy()
+    
+    # Encode categorical variables
+    categorical_columns = ['Gender', 'Teacher_Feedback', 'Parental_Involvement', 'Access_to_Resources', 
+                          'Extracurricular_Activities', 'Physical_Activity.1', 'Internet_Access', 
+                          'Family_Income', 'School_Type', 'Peer_Influence', 'Learning_Disabilities', 
+                          'Parental_Education_Level', 'Distance_from_Home']
+    
+    for col in categorical_columns:
+        if col in df_encoded.columns:
+            df_encoded[col] = le.fit_transform(df_encoded[col].astype(str))
+    
+    # Create target variable (performance category based on attendance and previous scores)
+    df_encoded['Performance'] = pd.cut(
+        (df_encoded['Attendance'] + df_encoded['Previous_Scores']) / 2,
+        bins=[0, 60, 80, 100],
+        labels=['Low', 'Medium', 'High']
+    )
+    
+    # Prepare features - exactly matching what prepare_features function will use
+    feature_columns = ['age', 'Attendance', 'Hours_Studied', 'Previous_Scores', 'Sleep_Hours', 
+                      'Physical_Activity', 'Tutoring_Sessions']
+    feature_columns.extend(categorical_columns)
+    
+    X = df_encoded[feature_columns].fillna(0)
+    y = df_encoded['Performance'].fillna('Medium')
+    
+    # Train model
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X, y)
+    
+    # Save model
+    with open('models/random_forest_student_performance_model.pkl', 'wb') as f:
+        pickle.dump(model, f)
+    
+    print(f"Created new model with {len(feature_columns)} features")
+
+# User management (in-memory for demo)
+users = {
+    'admin': {
+        'username': 'admin',
+        'password': generate_password_hash('admin123'),
+        'role': 'admin',
+        'name': 'Administrator'
+    },
+    'teacher1': {
+        'username': 'teacher1',
+        'password': generate_password_hash('teacher123'),
+        'role': 'teacher',
+        'name': 'John Smith',
+        'subject': 'Mathematics'
+    },
+    'teacher2': {
+        'username': 'teacher2',
+        'password': generate_password_hash('teacher123'),
+        'role': 'teacher',
+        'name': 'Sarah Johnson',
+        'subject': 'Science'
+    },
+    'teacher3': {
+        'username': 'teacher3',
+        'password': generate_password_hash('teacher123'),
+        'role': 'teacher',
+        'name': 'Michael Chen',
+        'subject': 'English'
+    },
+    'teacher4': {
+        'username': 'teacher4',
+        'password': generate_password_hash('teacher123'),
+        'role': 'teacher',
+        'name': 'Lisa Rodriguez',
+        'subject': 'History'
+    },
+    'student1': {
+        'username': 'student1',
+        'password': generate_password_hash('student123'),
+        'role': 'student',
+        'name': 'Alice Johnson',
+        'student_id': 'STU0001'
+    },
+    'student2': {
+        'username': 'student2',
+        'password': generate_password_hash('student123'),
+        'role': 'student',
+        'name': 'Bob Smith',
+        'student_id': 'STU0002'
+    },
+    'student3': {
+        'username': 'student3',
+        'password': generate_password_hash('student123'),
+        'role': 'student',
+        'name': 'Carol Davis',
+        'student_id': 'STU0003'
+    },
+    'student4': {
+        'username': 'student4',
+        'password': generate_password_hash('student123'),
+        'role': 'student',
+        'name': 'David Wilson',
+        'student_id': 'STU0004'
+    },
+    'student5': {
+        'username': 'student5',
+        'password': generate_password_hash('student123'),
+        'role': 'student',
+        'name': 'Emma Brown',
+        'student_id': 'STU0005'
+    }
+}
+
+class User(UserMixin):
+    pass
+
+@login_manager.user_loader
+def load_user(username):
+    if username not in users:
+        return None
+    user = User()
+    user.id = username
+    user.username = username
+    user.role = users[username]['role']
+    user.name = users[username]['name']
+    return user
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if username in users and check_password_hash(users[username]['password'], password):
+            user = User()
+            user.id = username
+            user.username = username
+            user.role = users[username]['role']
+            user.name = users[username]['name']
+            login_user(user)
+            
+            if user.role == 'student':
+                return redirect(url_for('student_dashboard'))
+            elif user.role == 'teacher':
+                return redirect(url_for('teacher_dashboard'))
+            else:
+                return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid username or password')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/student_dashboard')
+@login_required
+def student_dashboard():
+    if current_user.role != 'student':
+        flash('Access denied')
+        return redirect(url_for('index'))
+    
+    # Get student data
+    student_id = users[current_user.username]['student_id']
+    student_data = df[df['student_id'] == student_id].iloc[0]
+    
+    # Generate performance prediction
+    features = prepare_features(student_data)
+    prediction = model.predict([features])[0]
+    
+    # Create performance charts
+    attendance_chart = create_attendance_chart(student_data)
+    study_hours_chart = create_study_hours_chart(student_data)
+    performance_radar = create_performance_radar(student_data)
+    
+    return render_template('student_dashboard.html', 
+                         student=student_data, 
+                         prediction=prediction,
+                         attendance_chart=attendance_chart,
+                         study_hours_chart=study_hours_chart,
+                         performance_radar=performance_radar)
+
+@app.route('/teacher_dashboard')
+@login_required
+def teacher_dashboard():
+    if current_user.role != 'teacher':
+        flash('Access denied')
+        return redirect(url_for('index'))
+    
+    # Get page number and page size from query parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 15, type=int)  # Show 15 students per page by default
+    
+    # Validate page size (allow 10, 15, 25, 50, 100)
+    allowed_page_sizes = [10, 15, 25, 50, 100]
+    if per_page not in allowed_page_sizes:
+        per_page = 15
+    
+    # Get ALL students from the dataset
+    students_data = df  # Use entire dataset
+    
+    # Calculate pagination
+    total_students = len(students_data)
+    total_pages = (total_students + per_page - 1) // per_page  # Ceiling division
+    
+    # Ensure page is within valid range
+    if page < 1:
+        page = 1
+    elif page > total_pages:
+        page = total_pages
+    
+    # Get students for current page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    current_page_students = students_data.iloc[start_idx:end_idx]
+    
+    # Create class performance charts using ALL data
+    class_performance = create_class_performance_chart(students_data)
+    attendance_distribution = create_attendance_distribution_chart(students_data)
+    subject_analytics = create_subject_analytics_chart(students_data)
+    
+    # Calculate real statistics from actual dataset
+    avg_score = students_data['Previous_Scores'].mean()
+    avg_attendance = students_data['Attendance'].mean()
+    avg_study_hours = students_data['Hours_Studied'].mean()
+    
+    return render_template('teacher_dashboard.html',
+                         students=current_page_students.to_dict('records'),
+                         total_students=total_students,
+                         current_page=page,
+                         total_pages=total_pages,
+                         per_page=per_page,
+                         start_idx=start_idx + 1,  # +1 for display (1-based)
+                         end_idx=min(end_idx, total_students),
+                         avg_score=round(avg_score, 1),
+                         avg_attendance=round(avg_attendance, 1),
+                         avg_study_hours=round(avg_study_hours, 1),
+                         class_performance=class_performance,
+                         attendance_distribution=attendance_distribution,
+                         subject_analytics=subject_analytics)
+
+@app.route('/admin_dashboard')
+@login_required
+def admin_dashboard():
+    if current_user.role != 'admin':
+        flash('Access denied')
+        return redirect(url_for('index'))
+    
+    # Create global analytics
+    total_students = len(df)
+    gender_distribution = create_gender_distribution_chart(df)
+    performance_overview = create_performance_overview_chart(df)
+    school_type_analysis = create_school_type_analysis_chart(df)
+    
+    return render_template('admin_dashboard.html',
+                         total_students=total_students,
+                         users=users,
+                         gender_distribution=gender_distribution,
+                         performance_overview=performance_overview,
+                         school_type_analysis=school_type_analysis)
+
+@app.route('/api/student/<student_id>')
+@login_required
+def get_student_data(student_id):
+    if current_user.role not in ['teacher', 'admin']:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    student_data = df[df['student_id'] == student_id]
+    if student_data.empty:
+        return jsonify({'error': 'Student not found'}), 404
+    
+    return jsonify(student_data.iloc[0].to_dict())
+
+@app.route('/api/update_marks', methods=['POST'])
+@login_required
+def update_marks():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.json
+    student_id = data.get('student_id')
+    attendance = data.get('attendance')
+    previous_scores = data.get('previous_scores')
+    
+    # Update the dataset (in-memory for demo)
+    if student_id in df['student_id'].values:
+        df.loc[df['student_id'] == student_id, 'Attendance'] = attendance
+        df.loc[df['student_id'] == student_id, 'Previous_Scores'] = previous_scores
+        
+        # Save updated dataset
+        df.to_csv('data/StudentPerformance.csv', index=False)
+        
+        return jsonify({'success': True, 'message': 'Marks updated successfully'})
+    
+    return jsonify({'error': 'Student not found'}), 404
+
+@app.route('/api/create_user', methods=['POST'])
+@login_required
+def create_user():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.json
+    username = data.get('username')
+    role = data.get('role')
+    password = data.get('password')
+    
+    if not all([username, role, password]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    if username in users:
+        return jsonify({'error': 'Username already exists'}), 409
+    
+    # Generate student ID if creating a student
+    student_id = None
+    if role == 'student':
+        student_count = len([u for u in users.values() if u['role'] == 'student'])
+        student_id = f"STU{str(student_count + 1).zfill(4)}"
+        
+        # Try to get the actual name from the dataset
+        try:
+            student_data = df[df['student_id'] == student_id]
+            if not student_data.empty:
+                full_name = student_data.iloc[0]['Full_Name']
+            else:
+                full_name = f"Student {student_count + 1}"
+        except:
+            full_name = f"Student {student_count + 1}"
+    else:
+        role_count = len([u for u in users.values() if u['role'] == role])
+        full_name = f"{role.capitalize()} {role_count + 1}"
+    
+    # Create new user
+    new_user = {
+        'username': username,
+        'password': generate_password_hash(password),
+        'role': role,
+        'name': full_name
+    }
+    
+    if student_id:
+        new_user['student_id'] = student_id
+    
+    users[username] = new_user
+    
+    return jsonify({
+        'success': True, 
+        'message': f'User {username} created successfully',
+        'user': {
+            'username': username,
+            'role': role,
+            'name': full_name,
+            'student_id': student_id
+        }
+    })
+
+def prepare_features(student_data):
+    """Prepare features for model prediction"""
+    # This should match the features used during training
+    features = [
+        student_data['age'] if pd.notna(student_data['age']) else 0,
+        student_data['Attendance'],
+        student_data['Hours_Studied'],
+        student_data['Previous_Scores'],
+        student_data['Sleep_Hours'],
+        student_data['Physical_Activity'],
+        student_data['Tutoring_Sessions']
+    ]
+    
+    # Add encoded categorical features if they exist in the model
+    categorical_mapping = {
+        'Gender': {'Male': 0, 'Female': 1},
+        'Teacher_Feedback': {'Low': 0, 'Medium': 1, 'High': 2},
+        'Parental_Involvement': {'Low': 0, 'Medium': 1, 'High': 2},
+        'Access_to_Resources': {'Low': 0, 'Medium': 1, 'High': 2},
+        'Extracurricular_Activities': {'No': 0, 'Yes': 1},
+        'Physical_Activity.1': {'Low': 0, 'Medium': 1, 'High': 2},
+        'Internet_Access': {'No': 0, 'Yes': 1},
+        'Family_Income': {'Low': 0, 'Medium': 1, 'High': 2},
+        'School_Type': {'Public': 0, 'Private': 1},
+        'Peer_Influence': {'Negative': 0, 'Neutral': 1, 'Positive': 2},
+        'Learning_Disabilities': {'No': 0, 'Yes': 1},
+        'Parental_Education_Level': {'High School': 0, 'College': 1, 'Postgraduate': 2},
+        'Distance_from_Home': {'Near': 0, 'Moderate': 1, 'Far': 2}
+    }
+    
+    # Add categorical features in the same order as training
+    for col in ['Gender', 'Teacher_Feedback', 'Parental_Involvement', 'Access_to_Resources', 
+                'Extracurricular_Activities', 'Physical_Activity.1', 'Internet_Access', 
+                'Family_Income', 'School_Type', 'Peer_Influence', 'Learning_Disabilities', 
+                'Parental_Education_Level', 'Distance_from_Home']:
+        if col in student_data and pd.notna(student_data[col]):
+            value = student_data[col]
+            features.append(categorical_mapping[col].get(value, 0))
+        else:
+            features.append(0)
+    
+    # Ensure we have exactly 20 features (7 numerical + 13 categorical)
+    expected_features = 20
+    if len(features) != expected_features:
+        print(f"Warning: Expected {expected_features} features, got {len(features)}")
+        # Pad or truncate to match expected features
+        while len(features) < expected_features:
+            features.append(0)
+        features = features[:expected_features]
+    
+    print(f"Prepared {len(features)} features for prediction")
+    return features
+
+def create_attendance_chart(student_data):
+    """Create attendance chart for student dashboard"""
+    fig = go.Figure()
+    fig.add_trace(go.Indicator(
+        mode="gauge+number+delta",
+        value=student_data['Attendance'],
+        domain={'x': [0, 1], 'y': [0, 1]},
+        title={'text': "Attendance %"},
+        delta={'reference': 85},
+        gauge={
+            'axis': {'range': [None, 100]},
+            'bar': {'color': "darkblue"},
+            'steps': [
+                {'range': [0, 60], 'color': "lightgray"},
+                {'range': [60, 80], 'color': "yellow"},
+                {'range': [80, 100], 'color': "green"}
+            ],
+            'threshold': {
+                'line': {'color': "red", 'width': 4},
+                'thickness': 0.75,
+                'value': 90
+            }
+        }
+    ))
+    
+    fig.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20))
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_study_hours_chart(student_data):
+    """Create study hours chart for student dashboard"""
+    fig = go.Figure(data=[
+        go.Bar(x=['Study Hours'], y=[student_data['Hours_Studied']], 
+               marker_color='lightblue', name='Current')
+    ])
+    
+    fig.add_hline(y=25, line_dash="dash", line_color="red", 
+                  annotation_text="Recommended: 25+ hours")
+    
+    fig.update_layout(
+        title="Study Hours This Week",
+        yaxis_title="Hours",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_performance_radar(student_data):
+    """Create performance radar chart for student dashboard"""
+    categories = ['Attendance', 'Study Hours', 'Previous Scores', 'Sleep Hours', 'Physical Activity']
+    values = [
+        student_data['Attendance'] / 100 * 10,  # Normalize to 0-10
+        min(student_data['Hours_Studied'] / 3, 10),  # Cap at 10
+        student_data['Previous_Scores'] / 100 * 10,  # Normalize to 0-10
+        min(student_data['Sleep_Hours'] / 1.2, 10),  # Cap at 10
+        min(student_data['Physical_Activity'] / 1, 10)  # Cap at 10
+    ]
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=values,
+        theta=categories,
+        fill='toself',
+        name='Performance'
+    ))
+    
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 10]
+            )),
+        showlegend=False,
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_class_performance_chart(students_data):
+    """Create class performance overview chart"""
+    performance_counts = students_data['Previous_Scores'].apply(
+        lambda x: 'High' if x >= 80 else 'Medium' if x >= 60 else 'Low'
+    ).value_counts()
+    
+    fig = go.Figure(data=[
+        go.Pie(labels=performance_counts.index, values=performance_counts.values,
+               hole=0.3, marker_colors=['#2E8B57', '#FFD700', '#DC143C'])
+    ])
+    
+    fig.update_layout(
+        title="Class Performance Distribution",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_attendance_distribution_chart(students_data):
+    """Create attendance distribution chart"""
+    fig = go.Figure(data=[
+        go.Histogram(x=students_data['Attendance'], nbinsx=20, 
+                     marker_color='lightblue', opacity=0.7)
+    ])
+    
+    fig.update_layout(
+        title="Attendance Distribution",
+        xaxis_title="Attendance %",
+        yaxis_title="Number of Students",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_subject_analytics_chart(students_data):
+    """Create subject analytics chart"""
+    avg_scores = students_data.groupby('School_Type')['Previous_Scores'].mean().reset_index()
+    
+    fig = go.Figure(data=[
+        go.Bar(x=avg_scores['School_Type'], y=avg_scores['Previous_Scores'],
+               marker_color=['#FF6B6B', '#4ECDC4'])
+    ])
+    
+    fig.update_layout(
+        title="Average Scores by School Type",
+        xaxis_title="School Type",
+        yaxis_title="Average Score",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_gender_distribution_chart(df):
+    """Create gender distribution chart for admin dashboard"""
+    gender_counts = df['Gender'].value_counts()
+    
+    fig = go.Figure(data=[
+        go.Pie(labels=gender_counts.index, values=gender_counts.values,
+               hole=0.3, marker_colors=['#FF6B6B', '#4ECDC4'])
+    ])
+    
+    fig.update_layout(
+        title="Gender Distribution",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_performance_overview_chart(df):
+    """Create performance overview chart for admin dashboard"""
+    performance_ranges = pd.cut(df['Previous_Scores'], 
+                               bins=[0, 60, 80, 100], 
+                               labels=['Low (0-60)', 'Medium (60-80)', 'High (80-100)'])
+    performance_counts = performance_ranges.value_counts()
+    
+    fig = go.Figure(data=[
+        go.Bar(x=performance_counts.index, y=performance_counts.values,
+               marker_color=['#DC143C', '#FFD700', '#2E8B57'])
+    ])
+    
+    fig.update_layout(
+        title="Overall Performance Distribution",
+        xaxis_title="Performance Level",
+        yaxis_title="Number of Students",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def create_school_type_analysis_chart(df):
+    """Create school type analysis chart for admin dashboard"""
+    school_stats = df.groupby('School_Type').agg({
+        'Previous_Scores': ['mean', 'count'],
+        'Attendance': 'mean'
+    }).round(2)
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Bar(
+        name='Average Score',
+        x=school_stats.index,
+        y=school_stats[('Previous_Scores', 'mean')],
+        yaxis='y'
+    ))
+    
+    fig.add_trace(go.Bar(
+        name='Average Attendance',
+        x=school_stats.index,
+        y=school_stats[('Attendance', 'mean')],
+        yaxis='y2'
+    ))
+    
+    fig.update_layout(
+        title="School Type Analysis",
+        yaxis=dict(title="Average Score", side="left"),
+        yaxis2=dict(title="Average Attendance %", side="right", overlaying="y"),
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+if __name__ == '__main__':
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
+
+            student_data = df[df['student_id'] == student_id]
+            if not student_data.empty:
+                full_name = student_data.iloc[0]['Full_Name']
+            else:
+                full_name = f"Student {student_count + 1}"
+        except:
+            full_name = f"Student {student_count + 1}"
+    else:
+        role_count = len([u for u in users.values() if u['role'] == role])
+        full_name = f"{role.capitalize()} {role_count + 1}"
+    
+    # Create new user
+    new_user = {
+        'username': username,
+        'password': generate_password_hash(password),
+        'role': role,
+        'name': full_name
+    }
+    
+    if student_id:
+        new_user['student_id'] = student_id
+    
+    users[username] = new_user
+    
+    return jsonify({
+        'success': True, 
+        'message': f'User {username} created successfully',
+        'user': {
+            'username': username,
+            'role': role,
+            'name': full_name,
+            'student_id': student_id
+        }
+    })
+
+def prepare_features(student_data):
+
+    """Prepare features for model prediction"""
+
+    # This should match the features used during training
+
+    features = [
+
+        student_data['age'] if pd.notna(student_data['age']) else 0,
+
+        student_data['Attendance'],
+
+        student_data['Hours_Studied'],
+
+        student_data['Previous_Scores'],
+
+        student_data['Sleep_Hours'],
+
+        student_data['Physical_Activity'],
+
+        student_data['Tutoring_Sessions']
+
+    ]
+
+    
+
+    # Add encoded categorical features if they exist in the model
+
+    categorical_mapping = {
+
+        'Gender': {'Male': 0, 'Female': 1},
+
+        'Teacher_Feedback': {'Low': 0, 'Medium': 1, 'High': 2},
+
+        'Parental_Involvement': {'Low': 0, 'Medium': 1, 'High': 2},
+
+        'Access_to_Resources': {'Low': 0, 'Medium': 1, 'High': 2},
+
+        'Extracurricular_Activities': {'No': 0, 'Yes': 1},
+
+        'Physical_Activity.1': {'Low': 0, 'Medium': 1, 'High': 2},
+
+        'Internet_Access': {'No': 0, 'Yes': 1},
+
+        'Family_Income': {'Low': 0, 'Medium': 1, 'High': 2},
+
+        'School_Type': {'Public': 0, 'Private': 1},
+
+        'Peer_Influence': {'Negative': 0, 'Neutral': 1, 'Positive': 2},
+
+        'Learning_Disabilities': {'No': 0, 'Yes': 1},
+
+        'Parental_Education_Level': {'High School': 0, 'College': 1, 'Postgraduate': 2},
+
+        'Distance_from_Home': {'Near': 0, 'Moderate': 1, 'Far': 2}
+
+    }
+
+    
+
+    # Add categorical features in the same order as training
+
+    for col in ['Gender', 'Teacher_Feedback', 'Parental_Involvement', 'Access_to_Resources', 
+
+                'Extracurricular_Activities', 'Physical_Activity.1', 'Internet_Access', 
+
+                'Family_Income', 'School_Type', 'Peer_Influence', 'Learning_Disabilities', 
+
+                'Parental_Education_Level', 'Distance_from_Home']:
+
+        if col in student_data and pd.notna(student_data[col]):
+
+            value = student_data[col]
+
+            features.append(categorical_mapping[col].get(value, 0))
+
+        else:
+
+            features.append(0)
+
+    
+
+    # Ensure we have exactly 20 features (7 numerical + 13 categorical)
+
+    expected_features = 20
+
+    if len(features) != expected_features:
+
+        print(f"Warning: Expected {expected_features} features, got {len(features)}")
+
+        # Pad or truncate to match expected features
+
+        while len(features) < expected_features:
+
+            features.append(0)
+
+        features = features[:expected_features]
+
+    
+
+    print(f"Prepared {len(features)} features for prediction")
+
+    return features
+
+
+
+def create_attendance_chart(student_data):
+
+    """Create attendance chart for student dashboard"""
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Indicator(
+
+        mode="gauge+number+delta",
+
+        value=student_data['Attendance'],
+
+        domain={'x': [0, 1], 'y': [0, 1]},
+
+        title={'text': "Attendance %"},
+
+        delta={'reference': 85},
+
+        gauge={
+
+            'axis': {'range': [None, 100]},
+
+            'bar': {'color': "darkblue"},
+
+            'steps': [
+
+                {'range': [0, 60], 'color': "lightgray"},
+
+                {'range': [60, 80], 'color': "yellow"},
+
+                {'range': [80, 100], 'color': "green"}
+
+            ],
+
+            'threshold': {
+
+                'line': {'color': "red", 'width': 4},
+
+                'thickness': 0.75,
+
+                'value': 90
+
+            }
+
+        }
+
+    ))
+
+    
+
+    fig.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20))
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_study_hours_chart(student_data):
+
+    """Create study hours chart for student dashboard"""
+
+    fig = go.Figure(data=[
+
+        go.Bar(x=['Study Hours'], y=[student_data['Hours_Studied']], 
+
+               marker_color='lightblue', name='Current')
+
+    ])
+
+    
+
+    fig.add_hline(y=25, line_dash="dash", line_color="red", 
+
+                  annotation_text="Recommended: 25+ hours")
+
+    
+
+    fig.update_layout(
+
+        title="Study Hours This Week",
+
+        yaxis_title="Hours",
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_performance_radar(student_data):
+
+    """Create performance radar chart for student dashboard"""
+
+    categories = ['Attendance', 'Study Hours', 'Previous Scores', 'Sleep Hours', 'Physical Activity']
+
+    values = [
+
+        student_data['Attendance'] / 100 * 10,  # Normalize to 0-10
+
+        min(student_data['Hours_Studied'] / 3, 10),  # Cap at 10
+
+        student_data['Previous_Scores'] / 100 * 10,  # Normalize to 0-10
+
+        min(student_data['Sleep_Hours'] / 1.2, 10),  # Cap at 10
+
+        min(student_data['Physical_Activity'] / 1, 10)  # Cap at 10
+
+    ]
+
+    
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatterpolar(
+
+        r=values,
+
+        theta=categories,
+
+        fill='toself',
+
+        name='Performance'
+
+    ))
+
+    
+
+    fig.update_layout(
+
+        polar=dict(
+
+            radialaxis=dict(
+
+                visible=True,
+
+                range=[0, 10]
+
+            )),
+
+        showlegend=False,
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_class_performance_chart(students_data):
+
+    """Create class performance overview chart"""
+
+    performance_counts = students_data['Previous_Scores'].apply(
+
+        lambda x: 'High' if x >= 80 else 'Medium' if x >= 60 else 'Low'
+
+    ).value_counts()
+
+    
+
+    fig = go.Figure(data=[
+
+        go.Pie(labels=performance_counts.index, values=performance_counts.values,
+
+               hole=0.3, marker_colors=['#2E8B57', '#FFD700', '#DC143C'])
+
+    ])
+
+    
+
+    fig.update_layout(
+
+        title="Class Performance Distribution",
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_attendance_distribution_chart(students_data):
+
+    """Create attendance distribution chart"""
+
+    fig = go.Figure(data=[
+
+        go.Histogram(x=students_data['Attendance'], nbinsx=20, 
+
+                     marker_color='lightblue', opacity=0.7)
+
+    ])
+
+    
+
+    fig.update_layout(
+
+        title="Attendance Distribution",
+
+        xaxis_title="Attendance %",
+
+        yaxis_title="Number of Students",
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_subject_analytics_chart(students_data):
+
+    """Create subject analytics chart"""
+
+    avg_scores = students_data.groupby('School_Type')['Previous_Scores'].mean().reset_index()
+
+    
+
+    fig = go.Figure(data=[
+
+        go.Bar(x=avg_scores['School_Type'], y=avg_scores['Previous_Scores'],
+
+               marker_color=['#FF6B6B', '#4ECDC4'])
+
+    ])
+
+    
+
+    fig.update_layout(
+
+        title="Average Scores by School Type",
+
+        xaxis_title="School Type",
+
+        yaxis_title="Average Score",
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_gender_distribution_chart(df):
+
+    """Create gender distribution chart for admin dashboard"""
+
+    gender_counts = df['Gender'].value_counts()
+
+    
+
+    fig = go.Figure(data=[
+
+        go.Pie(labels=gender_counts.index, values=gender_counts.values,
+
+               hole=0.3, marker_colors=['#FF6B6B', '#4ECDC4'])
+
+    ])
+
+    
+
+    fig.update_layout(
+
+        title="Gender Distribution",
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_performance_overview_chart(df):
+
+    """Create performance overview chart for admin dashboard"""
+
+    performance_ranges = pd.cut(df['Previous_Scores'], 
+
+                               bins=[0, 60, 80, 100], 
+
+                               labels=['Low (0-60)', 'Medium (60-80)', 'High (80-100)'])
+
+    performance_counts = performance_ranges.value_counts()
+
+    
+
+    fig = go.Figure(data=[
+
+        go.Bar(x=performance_counts.index, y=performance_counts.values,
+
+               marker_color=['#DC143C', '#FFD700', '#2E8B57'])
+
+    ])
+
+    
+
+    fig.update_layout(
+
+        title="Overall Performance Distribution",
+
+        xaxis_title="Performance Level",
+
+        yaxis_title="Number of Students",
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+def create_school_type_analysis_chart(df):
+
+    """Create school type analysis chart for admin dashboard"""
+
+    school_stats = df.groupby('School_Type').agg({
+
+        'Previous_Scores': ['mean', 'count'],
+
+        'Attendance': 'mean'
+
+    }).round(2)
+
+    
+
+    fig = go.Figure()
+
+    
+
+    fig.add_trace(go.Bar(
+
+        name='Average Score',
+
+        x=school_stats.index,
+
+        y=school_stats[('Previous_Scores', 'mean')],
+
+        yaxis='y'
+
+    ))
+
+    
+
+    fig.add_trace(go.Bar(
+
+        name='Average Attendance',
+
+        x=school_stats.index,
+
+        y=school_stats[('Attendance', 'mean')],
+
+        yaxis='y2'
+
+    ))
+
+    
+
+    fig.update_layout(
+
+        title="School Type Analysis",
+
+        yaxis=dict(title="Average Score", side="left"),
+
+        yaxis2=dict(title="Average Attendance %", side="right", overlaying="y"),
+
+        height=300,
+
+        margin=dict(l=20, r=20, t=40, b=20)
+
+    )
+
+    
+
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+
+if __name__ == '__main__':
+
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    app.run(debug=True, host='0.0.0.0', port=5000)
+
+

@@ -1,1 +1,0 @@
-# Predictions app initialization

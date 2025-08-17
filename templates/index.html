@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}EduPredict AI - Student Performance Prediction System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="row min-vh-100 align-items-center">
+        <div class="col-lg-6">
+            <div class="hero-content" data-aos="fade-right">
+                <h1 class="display-3 fw-bold mb-4">
+                    <span class="gradient-text">AI-Powered</span><br>
+                    Student Performance<br>
+                    <span class="gradient-text">Prediction</span>
+                </h1>
+                <p class="lead mb-4 text-muted">
+                    Leverage machine learning to predict student performance, identify at-risk students, 
+                    and provide personalized recommendations for academic success.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket me-2"></i>
+                        Get Started
+                    </a>
+                    <a href="#features" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="hero-visual text-center" data-aos="fade-left">
+                <div class="floating-card">
+                    <i class="fas fa-brain" style="font-size: 8rem; color: var(--primary-color);"></i>
+                </div>
+                <div class="mt-4">
+                    <div class="stats-card d-inline-block me-3">
+                        <div class="stats-number">99.8%</div>
+                        <div class="stats-label">Accuracy</div>
+                    </div>
+                    <div class="stats-card d-inline-block">
+                        <div class="stats-number">6.6K+</div>
+                        <div class="stats-label">Students</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="display-5 fw-bold mb-3">Why Choose EduPredict AI?</h2>
+                <p class="lead text-muted">Advanced machine learning algorithms powered by real student data</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card h-100 text-center">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-line fa-3x gradient-text"></i>
+                            </div>
+                            <h4 class="card-title mb-3">Predictive Analytics</h4>
+                            <p class="card-text text-muted">
+                                Our AI model analyzes multiple factors including attendance, study hours, 
+                                previous scores, and more to predict future performance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card h-100 text-center">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-users fa-3x gradient-text"></i>
+                            </div>
+                            <h4 class="card-title mb-3">Role-Based Access</h4>
+                            <p class="card-text text-muted">
+                                Separate dashboards for students, teachers, and administrators 
+                                with tailored features and insights for each role.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card h-100 text-center">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-pie fa-3x gradient-text"></i>
+                            </div>
+                            <h4 class="card-title mb-3">Visual Analytics</h4>
+                            <p class="card-text text-muted">
+                                Interactive charts and graphs provide clear insights into 
+                                student performance trends and patterns.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-5 bg-dark">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+                <p class="lead text-muted">Simple three-step process to get started</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center">
+                        <div class="step-number mb-3">1</div>
+                        <h4 class="mb-3">Login</h4>
+                        <p class="text-muted">
+                            Access your personalized dashboard using your credentials. 
+                            Different roles see different interfaces and data.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center">
+                        <div class="step-number mb-3">2</div>
+                        <h4 class="mb-3">Analyze</h4>
+                        <p class="text-muted">
+                            View performance metrics, charts, and AI-generated predictions 
+                            based on comprehensive student data analysis.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-center">
+                        <div class="step-number mb-3">3</div>
+                        <h4 class="mb-3">Act</h4>
+                        <p class="text-muted">
+                            Use insights to make data-driven decisions, 
+                            track progress, and implement improvement strategies.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Accounts Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-key me-2"></i>
+                                Demo Accounts
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4">
+                                Try out the system with these demo accounts to explore different roles and features:
+                            </p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="demo-account">
+                                        <h6 class="text-primary">Student</h6>
+                                        <p class="mb-1"><strong>Username:</strong> student1</p>
+                                        <p class="mb-1"><strong>Password:</strong> student123</p>
+                                        <small class="text-muted">View personal performance and predictions</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="demo-account">
+                                        <h6 class="text-warning">Teacher</h6>
+                                        <p class="mb-1"><strong>Username:</strong> teacher1</p>
+                                        <p class="mb-1"><strong>Password:</strong> teacher123</p>
+                                        <small class="text-muted">Manage class performance and analytics</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="demo-account">
+                                        <h6 class="text-danger">Admin</h6>
+                                        <p class="mb-1"><strong>Username:</strong> admin</p>
+                                        <p class="mb-1"><strong>Password:</strong> admin123</p>
+                                        <small class="text-muted">System-wide analytics and management</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Try Demo Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-muted">
+        <div class="container">
+            <p>&copy; 2024 EduPredict AI. Powered by Machine Learning and Real Student Data.</p>
+        </div>
+    </footer>
+</div>
+
+<style>
+    .hero-content h1 {
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto;
+    }
+    
+    .demo-account {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .demo-account:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .demo-account h6 {
+        margin-bottom: 15px;
+    }
+    
+    .demo-account p {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .demo-account small {
+        font-size: 0.8rem;
+    }
+    
+    /* Animation classes */
+    [data-aos] {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease;
+    }
+    
+    [data-aos].aos-animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* Floating animation for hero visual */
+    .floating-card {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    /* Gradient text animation */
+    .gradient-text {
+        background-size: 200% 200%;
+        animation: gradient-shift 3s ease infinite;
+    }
+    
+    @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+</style>
+
+<script>
+    // Simple AOS (Animate On Scroll) implementation
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('aos-animate');
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('[data-aos]').forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Add some interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add typing effect to hero title
+        const heroTitle = document.querySelector('.hero-content h1');
+        if (heroTitle) {
+            heroTitle.style.opacity = '0';
+            heroTitle.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                heroTitle.style.transition = 'all 1s ease';
+                heroTitle.style.opacity = '1';
+                heroTitle.style.transform = 'translateY(0)';
+            }, 500);
+        }
+        
+        // Add hover effects to feature cards
+        const featureCards = document.querySelectorAll('.card');
+        featureCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    });
+</script>
+{% endblock %}
