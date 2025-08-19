@@ -10,7 +10,7 @@
             <div class="welcome-header">
                 <h1 class="gradient-text fw-bold">
                     <i class="fas fa-user-graduate me-3"></i>
-                    Welcome, {{ student.Full_Name if student.Full_Name else student.Gender + ' ' + student.student_id }}
+                    Welcome, <span class="student-welcome-name">{{ student.Full_Name if student.Full_Name else student.Gender + ' ' + student.student_id }}</span>
                 </h1>
                 <p class="text-muted">Your personalized performance dashboard with AI-powered insights</p>
             </div>
@@ -430,19 +430,28 @@
     
     .detail-label {
         font-size: 0.8rem;
-        color: #94a3b8;
+        color: #e2e8f0; /* Light gray for dark backgrounds */
         text-transform: uppercase;
         letter-spacing: 1px;
         margin-bottom: 5px;
         display: block;
+        font-weight: 700;
     }
     
     .detail-value {
         font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--dark-text);
+        font-weight: 700;
+        color: #ffffff; /* White for dark backgrounds */
     }
     
+    /* Student name visibility in welcome header */
+    .student-welcome-name {
+        color: #ffffff !important; /* White for dark gradient background */
+        font-weight: 700 !important;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Academic metric text - dark backgrounds */
     .academic-metric {
         text-align: center;
         padding: 20px;
@@ -460,21 +469,19 @@
     .metric-value {
         font-size: 2rem;
         font-weight: 700;
-        color: var(--primary-color);
-        margin-bottom: 10px;
+        color: #ffffff; /* White for dark backgrounds */
+        margin-bottom: 5px;
     }
     
     .metric-label {
         font-size: 0.9rem;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 10px;
+        color: #e2e8f0; /* Light gray for dark backgrounds */
+        font-weight: 600;
     }
     
     .metric-status {
         font-size: 0.8rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
@@ -497,8 +504,8 @@
     }
     
     .factor-label {
-        font-weight: 500;
-        color: var(--dark-text);
+        font-weight: 700;
+        color: #ffffff;
     }
     
     .factor-value {
@@ -516,13 +523,23 @@
         display: flex;
         align-items: flex-start;
         padding: 15px;
-        background: rgba(99, 102, 241, 0.1);
+        /* Increase contrast for readability on dark theme */
+        background: rgba(99, 102, 241, 0.15);
         border-radius: 10px;
         border-left: 4px solid var(--primary-color);
+        color: #ffffff; /* ensure text is clearly visible */
+        line-height: 1.4;
+        font-weight: 600;
     }
     
     .recommendation-item i {
         margin-top: 2px;
+    }
+
+    /* Ensure any nested text spans inherit the high-contrast color */
+    .recommendation-item span {
+        color: #ffffff;
+        font-weight: 600;
     }
     
     .chart-container {
@@ -533,12 +550,69 @@
     
     .chart-container h6 {
         color: var(--primary-color);
-        font-weight: 600;
+        font-weight: 700;
     }
     
     #attendanceChart, #studyHoursChart, #performanceRadar {
         flex: 1;
         min-height: 300px;
+    }
+    
+    /* Enhanced text visibility for all elements */
+    .welcome-header p {
+        color: #e2e8f0 !important;
+        font-weight: 600;
+    }
+    
+    .alert p {
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+    
+    .alert h5 {
+        color: #ffffff !important;
+        font-weight: 700;
+    }
+    
+    /* Enhanced contrast for better accessibility */
+    .text-light {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    .text-muted {
+        color: #e2e8f0 !important; /* Light gray for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Card content visibility - dark backgrounds */
+    .card-body p, .card-body span, .card-body div {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    .card-body small {
+        color: #e2e8f0 !important; /* Light gray for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Form controls - dark backgrounds */
+    .form-control {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        color: #ffffff; /* White text for dark background */
+    }
+    
+    .form-control:focus {
+        background: var(--dark-card);
+        border-color: var(--primary-color);
+        color: #ffffff; /* White text for dark background */
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+    
+    .form-label {
+        color: #ffffff; /* White text for dark backgrounds */
+        font-weight: 600;
     }
 </style>
 

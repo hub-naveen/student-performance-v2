@@ -12,7 +12,7 @@
                     <i class="fas fa-shield-alt me-3"></i>
                     Administrator Dashboard
                 </h1>
-                <p class="text-muted">System-wide analytics and management tools</p>
+                <p class="text-light">System-wide analytics and management tools</p>
             </div>
         </div>
     </div>
@@ -27,19 +27,19 @@
         </div>
         <div class="col-lg-3 col-md-6">
             <div class="stats-card">
-                <div class="stats-number">3</div>
+                <div class="stats-number">{{ users|selectattr('role', 'equalto', 'teacher')|list|length }}</div>
                 <div class="stats-label">Active Teachers</div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6">
             <div class="stats-card">
-                <div class="stats-number">2</div>
+                <div class="stats-number">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</div>
                 <div class="stats-label">System Admins</div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6">
             <div class="stats-card">
-                <div class="stats-number">99.8%</div>
+                <div class="stats-number">{{ "%.1f"|format(model_accuracy) }}%</div>
                 <div class="stats-label">Model Accuracy</div>
             </div>
         </div>
@@ -103,8 +103,8 @@
                             <tbody>
                                 {% for username, user in users.items() %}
                                 <tr>
-                                    <td>{{ username }}</td>
-                                    <td>{{ user.name }}</td>
+                                    <td class="username-cell">{{ username }}</td>
+                                    <td class="user-name-cell">{{ user.name }}</td>
                                     <td>
                                         <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'warning' if user.role == 'teacher' else 'info' }}">
                                             {{ user.role|title }}
@@ -180,42 +180,42 @@
                 <div class="card-body">
                     <div class="system-metrics">
                         <div class="metric-item">
-                            <div class="metric-label">CPU Usage</div>
+                            <div class="metric-label">Data Quality</div>
                             <div class="metric-bar">
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-success" style="width: 25%"></div>
+                                    <div class="progress-bar bg-success" style="width: {{ data_quality }}%"></div>
                                 </div>
-                                <span class="metric-value">25%</span>
+                                <span class="metric-value">{{ data_quality }}%</span>
                             </div>
                         </div>
                         
                         <div class="metric-item">
-                            <div class="metric-label">Memory Usage</div>
+                            <div class="metric-label">Model Performance</div>
                             <div class="metric-bar">
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-warning" style="width: 60%"></div>
+                                    <div class="progress-bar bg-warning" style="width: {{ model_accuracy }}%"></div>
                                 </div>
-                                <span class="metric-value">60%</span>
+                                <span class="metric-value">{{ "%.1f"|format(model_accuracy) }}%</span>
                             </div>
                         </div>
                         
                         <div class="metric-item">
-                            <div class="metric-label">Disk Usage</div>
+                            <div class="metric-label">Student Coverage</div>
                             <div class="metric-bar">
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-info" style="width: 45%"></div>
+                                    <div class="progress-bar bg-info" style="width: {{ student_coverage }}%"></div>
                                 </div>
-                                <span class="metric-value">45%</span>
+                                <span class="metric-value">{{ student_coverage }}%</span>
                             </div>
                         </div>
                         
                         <div class="metric-item">
-                            <div class="metric-label">Active Sessions</div>
+                            <div class="metric-label">Active Users</div>
                             <div class="metric-bar">
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-primary" style="width: 80%"></div>
+                                    <div class="progress-bar bg-primary" style="width: {{ active_users_percentage }}%"></div>
                                 </div>
-                                <span class="metric-value">80%</span>
+                                <span class="metric-value">{{ active_users_percentage }}%</span>
                             </div>
                         </div>
                     </div>
@@ -233,45 +233,15 @@
                 </div>
                 <div class="card-body">
                     <div class="system-logs">
+                        {% for log in system_logs %}
                         <div class="log-item">
-                            <div class="log-time">2 min ago</div>
+                            <div class="log-time">{{ log.time }}</div>
                             <div class="log-message">
-                                <span class="badge bg-success me-2">INFO</span>
-                                User 'teacher1' logged in successfully
+                                <span class="badge bg-{{ log.level }} me-2">{{ log.level|upper }}</span>
+                                {{ log.message }}
                             </div>
                         </div>
-                        
-                        <div class="log-item">
-                            <div class="log-time">5 min ago</div>
-                            <div class="log-message">
-                                <span class="badge bg-info me-2">UPDATE</span>
-                                Student performance data updated for STU0001
-                            </div>
-                        </div>
-                        
-                        <div class="log-item">
-                            <div class="log-time">12 min ago</div>
-                            <div class="log-message">
-                                <span class="badge bg-warning me-2">WARNING</span>
-                                High memory usage detected (75%)
-                            </div>
-                        </div>
-                        
-                        <div class="log-item">
-                            <div class="log-time">25 min ago</div>
-                            <div class="log-message">
-                                <span class="badge bg-success me-2">INFO</span>
-                                Daily backup completed successfully
-                            </div>
-                        </div>
-                        
-                        <div class="log-item">
-                            <div class="log-time">1 hour ago</div>
-                            <div class="log-message">
-                                <span class="badge bg-info me-2">UPDATE</span>
-                                ML model retrained with new data
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -380,9 +350,10 @@
     }
     
     .metric-label {
-        font-weight: 500;
-        color: var(--dark-text);
+        font-weight: 600;
+        color: #e2e8f0;
         min-width: 120px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     .metric-bar {
@@ -425,13 +396,16 @@
     
     .log-time {
         font-size: 0.8rem;
-        color: #94a3b8;
+        color: #cbd5e1;
         min-width: 80px;
+        font-weight: 500;
     }
     
     .log-message {
         flex: 1;
         margin-left: 15px;
+        color: #e2e8f0;
+        font-weight: 500;
     }
     
     .data-action-card {
@@ -456,6 +430,9 @@
     .data-action-card p {
         font-size: 0.9rem;
         margin-bottom: 15px;
+        color: #e2e8f0;
+        font-weight: 500;
+        line-height: 1.4;
     }
     
     .chart-container {
@@ -467,6 +444,7 @@
     .chart-container h6 {
         color: var(--primary-color);
         font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     #genderDistributionChart, #performanceOverviewChart, #schoolTypeAnalysisChart {
@@ -474,10 +452,125 @@
         min-height: 300px;
     }
     
+    /* Table background and contrast - ensuring proper visibility */
+    .table {
+        background: #ffffff; /* White background for tables */
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .table thead {
+        background: #f8fafc; /* Light gray background for headers */
+    }
+    
+    .table tbody {
+        background: #ffffff; /* White background for table body */
+    }
+    
     .table tbody tr:hover {
-        background-color: rgba(99, 102, 241, 0.1);
+        background-color: #f1f5f9; /* Light hover color on white background */
         transform: scale(1.01);
         transition: all 0.2s ease;
+    }
+    
+    /* Enhanced table text visibility - white background */
+    .table td {
+        color: #1f2937 !important; /* Dark text for white background */
+        font-weight: 600;
+        border-color: #e5e7eb; /* Light border for white background */
+    }
+    
+    /* Enhanced table header styling with modern design */
+    .table th {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+        border: none !important;
+        padding: 15px 12px !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+        position: relative !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .table th:first-child {
+        border-top-left-radius: 10px !important;
+    }
+    
+    .table th:last-child {
+        border-top-right-radius: 10px !important;
+    }
+    
+    .table th::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #ffffff, transparent);
+        opacity: 0.3;
+    }
+    
+    .table th:hover {
+        background: linear-gradient(135deg, #5b5fef, #7c3aed) !important;
+        transform: translateY(-1px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Specific styling for usernames to make them clearly visible */
+    .username-cell {
+        color: #1f2937 !important; /* Dark color for white background */
+        font-weight: 700 !important;
+        font-size: 1rem;
+    }
+    
+    .user-name-cell {
+        color: #374151 !important; /* Dark gray for white background */
+        font-weight: 600;
+    }
+    
+    /* Enhanced text visibility - ensuring proper contrast */
+    .text-muted {
+        color: #1f2937 !important; /* Dark gray/black for white backgrounds */
+        font-weight: 600;
+    }
+    
+    .text-light {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Card content visibility - dark backgrounds */
+    .card-body p, .card-body span, .card-body div {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    .card-body small {
+        color: #e2e8f0 !important; /* Light gray for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Form controls - dark backgrounds */
+    .form-control {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        color: #ffffff; /* White text for dark background */
+    }
+    
+    .form-control:focus {
+        background: var(--dark-card);
+        border-color: var(--primary-color);
+        color: #ffffff; /* White text for dark background */
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+    
+    .form-label {
+        color: #ffffff; /* White text for dark backgrounds */
+        font-weight: 600;
     }
     
     .table .btn-group {
@@ -536,7 +629,8 @@
     
     /* User Details Modal Styling */
     .modal-content {
-        border: none;
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
         border-radius: 15px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
@@ -545,7 +639,7 @@
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         color: white;
         border-radius: 15px 15px 0 0;
-        border-bottom: none;
+        border-bottom: 1px solid var(--dark-border);
     }
     
     .modal-header .btn-close {
@@ -554,19 +648,24 @@
     
     .modal-body {
         padding: 2rem;
+        color: #ffffff; /* White text for dark background */
     }
     
     .modal-body h6 {
         font-weight: 600;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid #e5e7eb;
+        border-bottom: 2px solid var(--dark-border);
+        color: #ffffff; /* White text for dark background */
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     .modal-body p {
         margin-bottom: 0.75rem;
         padding: 0.5rem 0;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid var(--dark-border);
+        color: #e2e8f0; /* Light gray for dark background */
+        font-weight: 500;
     }
     
     .modal-body p:last-child {
@@ -574,14 +673,17 @@
     }
     
     .modal-body strong {
-        color: #374151;
+        color: #ffffff; /* White text for dark background */
         min-width: 120px;
         display: inline-block;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     .bg-light {
-        background-color: #f8fafc !important;
-        border: 1px solid #e2e8f0;
+        background-color: #1e293b !important;
+        border: 1px solid #334155;
+        color: #e2e8f0;
     }
     
     .text-primary {

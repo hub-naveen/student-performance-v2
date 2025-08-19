@@ -9,7 +9,7 @@ echo.
 echo Please wait while the system initializes...
 echo.
 echo Once started, open your browser to:
-echo http://loc lhost:5000
+echo http://localhost:5000
 echo.
 echo Demo Accounts:
 echo - Student: student1 / student123
