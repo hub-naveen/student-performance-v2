@@ -1,0 +1,99 @@
+{
+  "num_rows": 6607,
+  "num_columns": 21,
+  "columns": {
+    "student_id": "object",
+    "Gender": "object",
+    "age": "float64",
+    "Teacher_Feedback": "object",
+    "Attendance": "int64",
+    "Hours_Studied": "int64",
+    "Previous_Scores": "int64",
+    "Parental_Involvement": "object",
+    "Access_to_Resources": "object",
+    "Extracurricular_Activities": "object",
+    "Sleep_Hours": "int64",
+    "Physical_Activity": "int64",
+    "Internet_Access": "object",
+    "Tutoring_Sessions": "int64",
+    "Family_Income": "object",
+    "School_Type": "object",
+    "Peer_Influence": "object",
+    "Learning_Disabilities": "object",
+    "Parental_Education_Level": "object",
+    "Distance_from_Home": "object",
+    "Full_Name": "object"
+  },
+  "missing_per_column": {
+    "student_id": 0,
+    "Gender": 0,
+    "age": 0,
+    "Teacher_Feedback": 0,
+    "Attendance": 0,
+    "Hours_Studied": 0,
+    "Previous_Scores": 0,
+    "Parental_Involvement": 0,
+    "Access_to_Resources": 0,
+    "Extracurricular_Activities": 0,
+    "Sleep_Hours": 0,
+    "Physical_Activity": 0,
+    "Internet_Access": 0,
+    "Tutoring_Sessions": 0,
+    "Family_Income": 0,
+    "School_Type": 0,
+    "Peer_Influence": 0,
+    "Learning_Disabilities": 0,
+    "Parental_Education_Level": 0,
+    "Distance_from_Home": 0,
+    "Full_Name": 0
+  },
+  "missing_total": 0,
+  "duplicate_student_id_count": 0,
+  "numeric_summary": {
+    "age": {
+      "min": 15.0,
+      "max": 22.0,
+      "mean": 16.721951961082397,
+      "std": 1.272002846228878
+    },
+    "Attendance": {
+      "min": 60.0,
+      "max": 100.0,
+      "mean": 79.97744816104132,
+      "std": 11.547474961482814,
+      "out_of_range_count": 0
+    },
+    "Hours_Studied": {
+      "min": 1.0,
+      "max": 44.0,
+      "mean": 19.975329196306948,
+      "std": 5.9905943365787415
+    },
+    "Previous_Scores": {
+      "min": 50.0,
+      "max": 100.0,
+      "mean": 75.07053125472983,
+      "std": 14.399784350759024,
+      "out_of_range_count": 0
+    },
+    "Sleep_Hours": {
+      "min": 4.0,
+      "max": 10.0,
+      "mean": 7.029060087785682,
+      "std": 1.4681202267434879
+    },
+    "Physical_Activity": {
+      "min": 0.0,
+      "max": 6.0,
+      "mean": 2.9676101104888755,
+      "std": 1.0312310926271286
+    },
+    "Tutoring_Sessions": {
+      "min": 0.0,
+      "max": 8.0,
+      "mean": 1.4937187831088239,
+      "std": 1.2305704213240194
+    }
+  },
+  "missing_expected_columns": []
+}

@@ -1,0 +1,853 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - EduPredict AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-header">
+                <h1 class="gradient-text fw-bold">
+                    <i class="fas fa-chalkboard-teacher me-3"></i>
+                    Teacher Dashboard
+                </h1>
+                <p class="text-light">Manage your class performance and student analytics</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_students }}</div>
+                <div class="stats-label">Total Students</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">{{ avg_score }}</div>
+                <div class="stats-label">Average Score</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">{{ avg_attendance }}%</div>
+                <div class="stats-label">Avg Attendance</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-number">{{ avg_study_hours }}</div>
+                <div class="stats-label">Avg Study Hours</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3"><i class="fas fa-chart-pie me-2"></i>Class Performance Distribution</h6>
+                <div id="classPerformanceChart"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Attendance Distribution</h6>
+                <div id="attendanceDistributionChart"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3"><i class="fas fa-chart-line me-2"></i>School Type Analysis</h6>
+                <div id="subjectAnalyticsChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Enhanced Charts -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h6 class="mb-3"><i class="fas fa-scatter-chart me-2"></i>Study Hours vs Performance</h6>
+                <div id="studyHoursPerformanceChart"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h6 class="mb-3"><i class="fas fa-users me-2"></i>Gender Performance Comparison</h6>
+                <div id="genderComparisonChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Trend Analysis -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h6 class="mb-3"><i class="fas fa-trending-up me-2"></i>Attendance Impact on Performance</h6>
+                <div id="attendanceTrendChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student List -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Student List ({{ total_students }} Students)</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-light btn-sm" onclick="exportToCSV()"><i class="fas fa-download me-2"></i>Export CSV</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Gender</th>
+                                    <th>Age</th>
+                                    <th>Attendance</th>
+                                    <th>Previous Score</th>
+                                    <th>Study Hours</th>
+                                    <th>Performance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr data-student-id="{{ student.student_id }}">
+                                    <td><span class="badge bg-primary">{{ student.student_id }}</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-2"><i class="fas fa-user-circle fa-lg text-muted"></i></div>
+                                            <div>
+                                                <div class="student-name">{{ student.Full_Name if student.Full_Name else student.Gender + ' Student' }}</div>
+                                                <small class="student-type">{{ student.School_Type }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-{{ 'info' if student.Gender == 'Male' else 'warning' }}">{{ student.Gender }}</span></td>
+                                    <td>{{ student.age if student.age else 'N/A' }}</td>
+                                    <td>
+                                        <div class="attendance-bar">
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-{{ 'success' if student.Attendance >= 85 else 'warning' if student.Attendance >= 70 else 'danger' }}" style="width: {{ student.Attendance }}%"></div>
+                                            </div>
+                                            <small class="text-muted">{{ student.Attendance }}%</small>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-{{ 'success' if student.Previous_Scores >= 80 else 'warning' if student.Previous_Scores >= 60 else 'danger' }}">{{ student.Previous_Scores }}</span></td>
+                                    <td>{{ student.Hours_Studied }}h</td>
+                                    <td>
+                                        {% set performance = 'High' if student.Previous_Scores >= 80 else 'Medium' if student.Previous_Scores >= 60 else 'Low' %}
+                                        <span class="badge bg-{{ 'success' if performance == 'High' else 'warning' if performance == 'Medium' else 'danger' }}">{{ performance }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="viewStudent('{{ student.student_id }}')"><i class="fas fa-eye"></i></button>
+                                            <button class="btn btn-outline-warning" onclick="editStudent('{{ student.student_id }}')"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            <div class="text-muted">Showing {{ start_idx }}-{{ end_idx }} of {{ total_students }} students</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="form-label mb-0 text-muted small">Show:</label>
+                                <select class="form-select form-select-sm" id="pageSizeSelect" onchange="changePageSize()" style="width: 80px;">
+                                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                                    <option value="15" {% if per_page == 15 %}selected{% endif %}>15</option>
+                                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        {% if total_pages > 1 %}
+                        <div class="pagination-controls">
+                            <nav aria-label="Student list pagination">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item {% if current_page == 1 %}disabled{% endif %}"><a class="page-link" href="{{ url_for('teacher_dashboard', page=current_page-1, per_page=per_page) }}"><i class="fas fa-chevron-left"></i></a></li>
+                                    {% for page_num in range(1, total_pages + 1) %}
+                                    <li class="page-item {% if page_num == current_page %}active{% endif %}"><a class="page-link" href="{{ url_for('teacher_dashboard', page=page_num, per_page=per_page) }}">{{ page_num }}</a></li>
+                                    {% endfor %}
+                                    <li class="page-item {% if current_page == total_pages %}disabled{% endif %}"><a class="page-link" href="{{ url_for('teacher_dashboard', page=current_page+1, per_page=per_page) }}"><i class="fas fa-chevron-right"></i></a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights and Actions -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Performance Insights</h5></div>
+                <div class="card-body">
+                    <div class="insights">
+                        <div class="insight-item"><i class="fas fa-star text-warning me-2"></i><span class="insight-text"><strong class="highlight-number">{{ high_performers_count }}</strong> students are performing excellently (80+ scores)</span></div>
+                        <div class="insight-item"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span class="insight-text"><strong class="highlight-number">{{ low_performers_count }}</strong> students need immediate attention (below 60)</span></div>
+                        <div class="insight-item"><i class="fas fa-chart-line text-info me-2"></i><span class="insight-text">Class average attendance is <strong class="highlight-number">{{ avg_attendance }}%</strong></span></div>
+                        <div class="insight-item"><i class="fas fa-clock text-primary me-2"></i><span class="insight-text">Average study time is <strong class="highlight-number">{{ avg_study_hours }} hours</strong> per week</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-bullhorn me-2"></i>Quick Actions</h5></div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <button class="btn btn-outline-primary w-100 mb-2" onclick="sendAnnouncement()"><i class="fas fa-bullhorn me-2"></i>Send Class Announcement</button>
+                        <button class="btn btn-outline-warning w-100 mb-2" onclick="generateClassReport()"><i class="fas fa-file-chart-line me-2"></i>Generate Class Report</button>
+                        <button class="btn btn-outline-success w-100" onclick="exportData()"><i class="fas fa-download me-2"></i>Export All Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="studentDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background: var(--dark-card); border: 1px solid var(--dark-border);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-bottom: 1px solid var(--dark-border);">
+                <h5 class="modal-title" style="color: #ffffff; font-weight: 700;">Student Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="studentDetailContent" style="color: #ffffff;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--dark-card); border: 1px solid var(--dark-border);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-bottom: 1px solid var(--dark-border);">
+                <h5 class="modal-title" style="color: #ffffff; font-weight: 700;">Edit Student Marks</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="color: #ffffff;">
+                <form id="editStudentForm">
+                    <div class="mb-3">
+                        <label class="form-label" style="color: #ffffff; font-weight: 700;">Student ID</label>
+                        <input type="text" class="form-control" id="editStudentId" readonly style="background: var(--dark-card); border: 1px solid var(--dark-border); color: #ffffff;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="color: #ffffff; font-weight: 700;">Attendance (%)</label>
+                        <input type="number" class="form-control" id="editAttendance" min="0" max="100" required style="background: var(--dark-card); border: 1px solid var(--dark-border); color: #ffffff;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="color: #ffffff; font-weight: 700;">Previous Score</label>
+                        <input type="number" class="form-control" id="editPreviousScore" min="0" max="100" required style="background: var(--dark-card); border: 1px solid var(--dark-border); color: #ffffff;">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--dark-border);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: var(--dark-border); border: 1px solid var(--dark-border); color: #ffffff;">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveStudentChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS Variables for Theme Colors */
+    :root {
+        --table-bg: #ffffff;
+        --table-header-bg: #f8fafc;
+        --table-text: #1f2937;
+        --table-header-text: #111827;
+        --student-name-color: #000000;
+        --student-name-bg: #ffffff;
+        --text-muted-color: #374151;
+    }
+    
+    .welcome-header { text-align: center; padding: 30px 0; background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(139,92,246,.1)); border-radius: 20px; margin-bottom: 30px; }
+    .attendance-bar { display: flex; flex-direction: column; gap: 5px; }
+    .chart-container { height: 350px; display: flex; flex-direction: column; }
+    #classPerformanceChart, #attendanceDistributionChart, #subjectAnalyticsChart { flex: 1; min-height: 300px; }
+    .insights { display: flex; flex-direction: column; gap: 15px; }
+    .insight-item { display: flex; align-items: center; padding: 15px; background: rgba(99, 102, 241, 0.1); border-radius: 10px; border-left: 4px solid var(--primary-color); }
+    
+    /* Enhanced table responsiveness for student list */
+    .table-responsive {
+        overflow-x: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        max-width: 100%;
+    }
+    
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+        background: var(--dark-card);
+        border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-color);
+    }
+    
+    /* Table background and contrast with CSS variables */
+    .table {
+        background: var(--table-bg) !important;
+        border-radius: 10px;
+        overflow: hidden;
+        min-width: 800px;
+        width: 100%;
+    }
+    
+    .table thead {
+        background: var(--table-header-bg) !important;
+    }
+    
+    .table tbody {
+        background: var(--table-bg) !important;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    /* Enhanced table text visibility with CSS variables */
+    .table td {
+        color: var(--table-text) !important;
+        font-weight: 600;
+        border-color: #e5e7eb;
+        background: var(--table-bg) !important;
+    }
+    
+    /* Enhanced table header visibility with CSS variables */
+    .table th {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+        border: none !important;
+        padding: 15px 12px !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+        position: relative !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .table th:first-child {
+        border-top-left-radius: 10px !important;
+    }
+    
+    .table th:last-child {
+        border-top-right-radius: 10px !important;
+    }
+    
+    .table th::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #ffffff, transparent);
+        opacity: 0.3;
+    }
+    
+    .table th:hover {
+        background: linear-gradient(135deg, #5b5fef, #7c3aed) !important;
+        transform: translateY(-1px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Specific styling for student names - HIGH CONTRAST */
+    .student-name {
+        color: #1f2937 !important;
+        font-weight: 800 !important;
+        font-size: 1.1rem !important;
+        background: #ffffff !important;
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+        text-shadow: none !important;
+        letter-spacing: 0.5px !important;
+        border: 1px solid #e5e7eb;
+    }
+    
+    /* Student type text visibility - FIXED */
+    .student-type {
+        color: #374151 !important;
+        font-weight: 600;
+        background: #f3f4f6 !important;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        border: 1px solid #d1d5db;
+        margin-top: 4px;
+        display: inline-block;
+    }
+    
+    /* Simplified pagination - show shortcuts instead of all numbers */
+    .pagination {
+        margin-bottom: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px;
+    }
+    
+    .page-link {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        color: #ffffff;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        border-radius: 4px;
+    }
+    
+    .page-link:hover {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #ffffff;
+        transform: translateY(-2px);
+    }
+    
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #ffffff;
+        font-weight: 700;
+    }
+    
+    .page-item.disabled .page-link {
+        background: var(--dark-border);
+        border-color: var(--dark-border);
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+    
+    /* Hide page numbers except first, last, current, and adjacent */
+    .page-item:not(.active):not(:first-child):not(:last-child):not(:nth-child(2)):not(:nth-last-child(2)) {
+        display: none;
+    }
+    
+    /* Add ellipsis for hidden pages */
+    .page-item:not(.active):not(:first-child):not(:last-child):not(:nth-child(2)):not(:nth-last-child(2))::after {
+        content: "...";
+        display: inline-block;
+        color: #ffffff;
+        margin: 0 5px;
+        font-weight: 600;
+    }
+    
+    /* Enhanced text visibility - ensuring proper contrast */
+    .text-muted {
+        color: #1f2937 !important; /* Dark gray/black for white backgrounds */
+        font-weight: 600;
+    }
+    
+    .insight-text {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    .highlight-number {
+        color: var(--primary-color) !important;
+        font-weight: 700;
+    }
+    
+    .fw-bold {
+        color: #1f2937 !important; /* Dark color for white backgrounds */
+        font-weight: 700 !important;
+    }
+    
+    .attendance-bar small {
+        color: #1f2937 !important; /* Dark color for white background */
+        font-weight: 600;
+    }
+    
+    /* Card content visibility - dark backgrounds (exclude table content to preserve contrast) */
+    .card-body > p, .card-body > span, .card-body > div:not(.table-responsive) {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+
+    /* Fix: Ensure high contrast for all text inside the student list table (body only) */
+    .card .table td, .card .table tbody * {
+        color: var(--table-text) !important;
+        text-shadow: none !important;
+    }
+    .card .table .student-name {
+        color: #111827 !important; /* Slightly darker for emphasis */
+    }
+    .card .table .student-type {
+        color: #374151 !important;
+    }
+    
+    .card-body small {
+        color: #e2e8f0 !important; /* Light gray for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Modal content visibility - dark backgrounds */
+    .modal-body p, .modal-body span, .modal-body div {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    .modal-body h6 {
+        color: var(--primary-color) !important;
+        font-weight: 700;
+    }
+    
+    /* Responsive table adjustments */
+    @media (max-width: 768px) {
+        .table {
+            min-width: 600px;
+            font-size: 0.875rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 8px 6px;
+            font-size: 0.875rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            min-width: 35px;
+            height: 32px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .table {
+            min-width: 500px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 6px 4px;
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Pagination improvements - prevent overflow */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .pagination-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+    
+    /* Form select styling - dark backgrounds */
+    .form-select {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        color: #ffffff; /* White text for dark background */
+        font-weight: 600;
+    }
+    
+    .form-select:focus {
+        background: var(--dark-card);
+        border-color: var(--primary-color);
+        color: #ffffff; /* White text for dark background */
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+    
+    /* Form controls in modals - dark backgrounds */
+    .form-control {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        color: #ffffff; /* White text for dark background */
+    }
+    
+    .form-control:focus {
+        background: var(--dark-card);
+        border-color: var(--primary-color);
+        color: #ffffff; /* White text for dark background */
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+    
+    .form-label {
+        color: #ffffff; /* White text for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Progress bar styling */
+    .progress {
+        background: var(--dark-border);
+        border-radius: 4px;
+    }
+    
+    .progress-bar {
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    
+    .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .chart-container h6 {
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    
+    .table .btn-group {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .table .btn-group .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-shadow: none;
+        min-width: 40px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-group .btn {
+        transition: all 0.2s ease;
+        color: #ffffff !important;
+        border-color: #6366f1 !important;
+        margin: 0 2px;
+    }
+    
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+        background-color: #6366f1 !important;
+        color: #ffffff !important;
+    }
+    
+    .btn-group .btn.btn-outline-primary {
+        color: #6366f1 !important;
+        border-color: #6366f1 !important;
+    }
+    
+    .btn-group .btn.btn-outline-primary:hover {
+        background-color: #6366f1 !important;
+        color: #ffffff !important;
+    }
+    
+    .btn-group .btn.btn-outline-warning {
+        color: #f59e0b !important;
+        border-color: #f59e0b !important;
+    }
+    
+    .btn-group .btn.btn-outline-warning:hover {
+        background-color: #f59e0b !important;
+        color: #ffffff !important;
+    }
+    
+    .table .btn-group .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+</style>
+
+<script>
+    // Charts
+    const classPerformanceData = {{ class_performance | safe }};
+    Plotly.newPlot('classPerformanceChart', classPerformanceData.data, classPerformanceData.layout, {responsive: true});
+    const attendanceDistributionData = {{ attendance_distribution | safe }};
+    Plotly.newPlot('attendanceDistributionChart', attendanceDistributionData.data, attendanceDistributionData.layout, {responsive: true});
+    const subjectAnalyticsData = {{ subject_analytics | safe }};
+    Plotly.newPlot('subjectAnalyticsChart', subjectAnalyticsData.data, subjectAnalyticsData.layout, {responsive: true});
+    
+    // Additional Enhanced Charts
+    const studyHoursPerformanceData = {{ study_hours_performance | safe }};
+    Plotly.newPlot('studyHoursPerformanceChart', studyHoursPerformanceData.data, studyHoursPerformanceData.layout, {responsive: true});
+    const genderComparisonData = {{ gender_comparison | safe }};
+    Plotly.newPlot('genderComparisonChart', genderComparisonData.data, genderComparisonData.layout, {responsive: true});
+    const attendanceTrendData = {{ attendance_trend | safe }};
+    Plotly.newPlot('attendanceTrendChart', attendanceTrendData.data, attendanceTrendData.layout, {responsive: true});
+    
+    // Student detail
+    function viewStudent(studentId) {
+        fetch(`/api/student/${studentId}`).then(r => r.json()).then(data => {
+            const c = `
+                <div class='row'>
+                    <div class='col-md-6'>
+                            <h6>Personal Information</h6>
+                            <p><strong>Full Name:</strong> ${data.Full_Name || 'N/A'}</p>
+                            <p><strong>ID:</strong> ${data.student_id}</p>
+                            <p><strong>Gender:</strong> ${data.Gender}</p>
+                            <p><strong>Age:</strong> ${data.age || 'N/A'}</p>
+                            <p><strong>School Type:</strong> ${data.School_Type}</p>
+                        </div>
+                    <div class='col-md-6'>
+                            <h6>Academic Performance</h6>
+                            <p><strong>Attendance:</strong> ${data.Attendance}%</p>
+                            <p><strong>Previous Score:</strong> ${data.Previous_Scores}</p>
+                            <p><strong>Study Hours:</strong> ${data.Hours_Studied}h</p>
+                            <p><strong>Sleep Hours:</strong> ${data.Sleep_Hours}h</p>
+                        </div>
+                </div>`;
+            document.getElementById('studentDetailContent').innerHTML = c;
+                new bootstrap.Modal(document.getElementById('studentDetailModal')).show();
+        }).catch(() => alert('Error loading student details. Please try again.'));
+    }
+    
+    // Edit student
+    function editStudent(studentId) {
+        fetch(`/api/student/${studentId}`).then(r => r.json()).then(data => {
+                document.getElementById('editStudentId').value = data.student_id;
+                document.getElementById('editAttendance').value = data.Attendance;
+                document.getElementById('editPreviousScore').value = data.Previous_Scores;
+                new bootstrap.Modal(document.getElementById('editStudentModal')).show();
+            });
+    }
+    
+    function saveStudentChanges() {
+        const studentId = document.getElementById('editStudentId').value;
+        const attendance = parseInt(document.getElementById('editAttendance').value);
+        const previousScore = parseInt(document.getElementById('editPreviousScore').value);
+        fetch('/api/update_marks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: studentId, attendance, previous_scores: previousScore })
+        }).then(r => r.json()).then(d => {
+            if (d.success) { alert('Student marks updated successfully!'); location.reload(); }
+            else { alert('Error updating student marks: ' + d.error); }
+        });
+        bootstrap.Modal.getInstance(document.getElementById('editStudentModal')).hide();
+    }
+    
+    // Export helpers
+    function exportToCSV() {
+        const table = document.querySelector('table');
+        let csv = [];
+        const rows = table.querySelectorAll('tr');
+        for (let i = 0; i < rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll('td, th');
+            for (let j = 0; j < cols.length; j++) {
+                let text = cols[j].innerText.replace(/,/g, ';');
+                row.push('"' + text + '"');
+            }
+            csv.push(row.join(','));
+        }
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'student_data.csv';
+        link.click();
+    }
+    
+    function changePageSize() {
+        const newPageSize = document.getElementById('pageSizeSelect').value;
+        window.location.href = `{{ url_for('teacher_dashboard') }}?page=1&per_page=${newPageSize}`;
+    }
+    
+    function sendAnnouncement() {
+        const message = prompt('Enter your class announcement:');
+        if (message) {
+            alert(`Announcement sent to class: "${message}"`);
+        }
+    }
+    
+    function generateClassReport() {
+        const totalStudents = {{ total_students }};
+        const avgAttendance = {{ avg_attendance }};
+        const avgScore = {{ avg_score }};
+        const avgStudyHours = {{ avg_study_hours }};
+        
+        const reportContent = `
+Class Performance Report
+========================
+Total Students: ${totalStudents}
+Average Attendance: ${avgAttendance}%
+Average Score: ${avgScore}
+Average Study Hours: ${avgStudyHours} hours
+Report Date: ${new Date().toLocaleDateString()}
+
+This report was generated automatically from the class dashboard using real dataset.
+        `;
+        
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'class_report.txt';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+    
+    function exportData() {
+        const table = document.querySelector('table');
+        let csv = [];
+        const rows = table.querySelectorAll('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll('td, th');
+            for (let j = 0; j < cols.length; j++) {
+                let text = cols[j].innerText.replace(/,/g, ';');
+                row.push('"' + text + '"');
+            }
+            csv.push(row.join(','));
+        }
+        
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'class_data.csv';
+        link.click();
+    }
+</script>
+{% endblock %}
+
+
+

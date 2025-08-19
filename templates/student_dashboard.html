@@ -1,0 +1,674 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - EduPredict AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-header">
+                <h1 class="gradient-text fw-bold">
+                    <i class="fas fa-user-graduate me-3"></i>
+                    Welcome, <span class="student-welcome-name">{{ student.Full_Name if student.Full_Name else student.Gender + ' ' + student.student_id }}</span>
+                </h1>
+                <p class="text-muted">Your personalized performance dashboard with AI-powered insights</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Prediction Alert -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info border-0" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-robot fa-2x me-3 text-primary"></i>
+                    <div>
+                        <h5 class="mb-1">AI Performance Prediction</h5>
+                        <p class="mb-0">
+                            Based on your current data, our AI model predicts your performance level as: 
+                            <span class="badge bg-primary fs-6">{{ prediction }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Details and Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        Personal Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-id-card text-primary"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">Student ID</label>
+                                    <div class="detail-value">{{ student.student_id }}</div>
+                                </div>
+                            </div>
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-venus-mars text-info"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">Gender</label>
+                                    <div class="detail-value">{{ student.Gender }}</div>
+                                </div>
+                            </div>
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-birthday-cake text-warning"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">Age</label>
+                                    <div class="detail-value">{{ student.age if student.age else 'N/A' }}</div>
+                                </div>
+                            </div>
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-school text-success"></i>
+                            </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">School Type</label>
+                                    <div class="detail-value">{{ student.School_Type }}</div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-dollar-sign text-success"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">Family Income</label>
+                                    <div class="detail-value">
+                                        <span class="badge bg-{{ 'success' if student.Family_Income == 'High' else 'warning' if student.Family_Income == 'Medium' else 'secondary' }}">
+                                            {{ student.Family_Income }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-graduation-cap text-primary"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">Parental Education</label>
+                                    <div class="detail-value">
+                                        <span class="badge bg-{{ 'success' if student.Parental_Education_Level == 'Postgraduate' else 'warning' if student.Parental_Education_Level == 'College' else 'secondary' }}">
+                                            {{ student.Parental_Education_Level if student.Parental_Education_Level else 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-map-marker-alt text-danger"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">Distance from Home</label>
+                                    <div class="detail-value">
+                                        <span class="badge bg-{{ 'success' if student.Distance_from_Home == 'Near' else 'warning' if student.Distance_from_Home == 'Moderate' else 'danger' }}">
+                                            {{ student.Distance_from_Home if student.Distance_from_Home else 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-card mb-3">
+                                <div class="detail-icon">
+                                    <i class="fas fa-brain text-warning"></i>
+                            </div>
+                                <div class="detail-content">
+                                    <label class="detail-label">Learning Disabilities</label>
+                                    <div class="detail-value">
+                                        <span class="badge bg-{{ 'danger' if student.Learning_Disabilities == 'Yes' else 'success' }}">
+                                            {{ student.Learning_Disabilities }}
+                                        </span>
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ student.Previous_Scores }}</div>
+                        <div class="stats-label">Previous Score</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ student.Hours_Studied }}</div>
+                        <div class="stats-label">Study Hours</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ student.Sleep_Hours }}</div>
+                        <div class="stats-label">Sleep Hours</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Charts -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Attendance Overview
+                </h6>
+                <div id="attendanceChart"></div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3">
+                    <i class="fas fa-clock me-2"></i>
+                    Study Hours vs Previous Score
+                </h6>
+                <div id="studyVsScoreChart"></div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="mb-3">
+                    <i class="fas fa-radar-chart me-2"></i>
+                    Performance Radar
+                </h6>
+                <div id="performanceRadar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Academic Records -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Academic Records
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="academic-metric">
+                                <div class="metric-value">{{ student.Attendance }}%</div>
+                                <div class="metric-label">Attendance Rate</div>
+                                <div class="metric-status {{ 'text-success' if student.Attendance >= 85 else 'text-warning' if student.Attendance >= 70 else 'text-danger' }}">
+                                    {{ 'Excellent' if student.Attendance >= 85 else 'Good' if student.Attendance >= 70 else 'Needs Improvement' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="academic-metric">
+                                <div class="metric-value">{{ student.Previous_Scores }}</div>
+                                <div class="metric-label">Previous Score</div>
+                                <div class="metric-status {{ 'text-success' if student.Previous_Scores >= 80 else 'text-warning' if student.Previous_Scores >= 60 else 'text-danger' }}">
+                                    {{ 'High' if student.Previous_Scores >= 80 else 'Medium' if student.Previous_Scores >= 60 else 'Low' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="academic-metric">
+                                <div class="metric-value">{{ student.Hours_Studied }}</div>
+                                <div class="metric-label">Study Hours</div>
+                                <div class="metric-status {{ 'text-success' if student.Hours_Studied >= 25 else 'text-warning' if student.Hours_Studied >= 15 else 'text-danger' }}">
+                                    {{ 'Optimal' if student.Hours_Studied >= 25 else 'Good' if student.Hours_Studied >= 15 else 'Increase' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="academic-metric">
+                                <div class="metric-value">{{ student.Sleep_Hours }}</div>
+                                <div class="metric-label">Sleep Hours</div>
+                                <div class="metric-status {{ 'text-success' if student.Sleep_Hours >= 7 else 'text-warning' if student.Sleep_Hours >= 6 else 'text-danger' }}">
+                                    {{ 'Optimal' if student.Sleep_Hours >= 7 else 'Good' if student.Sleep_Hours >= 6 else 'Increase' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Factors -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        Learning Factors
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="factor-grid">
+                        <div class="factor-item">
+                            <span class="factor-label">Teacher Feedback:</span>
+                            <span class="factor-value badge bg-{{ 'success' if student.Teacher_Feedback == 'High' else 'warning' if student.Teacher_Feedback == 'Medium' else 'danger' }}">
+                                {{ student.Teacher_Feedback }}
+                            </span>
+                        </div>
+                        <div class="factor-item">
+                            <span class="factor-label">Parental Involvement:</span>
+                            <span class="factor-value badge bg-{{ 'success' if student.Parental_Involvement == 'High' else 'warning' if student.Parental_Involvement == 'Medium' else 'danger' }}">
+                                {{ student.Parental_Involvement }}
+                            </span>
+                        </div>
+                        <div class="factor-item">
+                            <span class="factor-label">Access to Resources:</span>
+                            <span class="factor-value badge bg-{{ 'success' if student.Access_to_Resources == 'High' else 'warning' if student.Access_to_Resources == 'Medium' else 'danger' }}">
+                                {{ student.Access_to_Resources }}
+                            </span>
+                        </div>
+                        <div class="factor-item">
+                            <span class="factor-label">Extracurricular Activities:</span>
+                            <span class="factor-value badge bg-{{ 'success' if student.Extracurricular_Activities == 'Yes' else 'secondary' }}">
+                                {{ student.Extracurricular_Activities }}
+                            </span>
+                        </div>
+                        <div class="factor-item">
+                            <span class="factor-label">Internet Access:</span>
+                            <span class="factor-value badge bg-{{ 'success' if student.Internet_Access == 'Yes' else 'danger' }}">
+                                {{ student.Internet_Access }}
+                            </span>
+                        </div>
+                        <div class="factor-item">
+                            <span class="factor-label">Peer Influence:</span>
+                            <span class="factor-value badge bg-{{ 'success' if student.Peer_Influence == 'Positive' else 'warning' if student.Peer_Influence == 'Neutral' else 'danger' }}">
+                                {{ student.Peer_Influence }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        AI Recommendations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="recommendations">
+                        {% if student.Attendance < 85 %}
+                        <div class="recommendation-item">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            <span>Improve attendance rate to achieve better academic performance</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if student.Hours_Studied < 25 %}
+                        <div class="recommendation-item">
+                            <i class="fas fa-clock text-info me-2"></i>
+                            <span>Increase study hours to reach optimal learning time</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if student.Sleep_Hours < 7 %}
+                        <div class="recommendation-item">
+                            <i class="fas fa-bed text-primary me-2"></i>
+                            <span>Ensure adequate sleep (7-9 hours) for better cognitive function</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if student.Physical_Activity < 3 %}
+                        <div class="recommendation-item">
+                            <i class="fas fa-dumbbell text-success me-2"></i>
+                            <span>Increase physical activity to improve focus and energy levels</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if student.Tutoring_Sessions == 0 %}
+                        <div class="recommendation-item">
+                            <i class="fas fa-chalkboard-teacher text-info me-2"></i>
+                            <span>Consider tutoring sessions for additional academic support</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="recommendation-item">
+                            <i class="fas fa-chart-line text-success me-2"></i>
+                            <span>Your current performance trend shows {{ 'positive' if student.Previous_Scores >= 80 else 'stable' if student.Previous_Scores >= 60 else 'room for improvement' }} progress</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .welcome-header {
+        text-align: center;
+        padding: 30px 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .detail-card {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    .detail-card:nth-child(1) { animation-delay: 0.1s; }
+    .detail-card:nth-child(2) { animation-delay: 0.2s; }
+    .detail-card:nth-child(3) { animation-delay: 0.3s; }
+    .detail-card:nth-child(4) { animation-delay: 0.4s; }
+    .detail-card:nth-child(5) { animation-delay: 0.5s; }
+    .detail-card:nth-child(6) { animation-delay: 0.6s; }
+    .detail-card:nth-child(7) { animation-delay: 0.7s; }
+    .detail-card:nth-child(8) { animation-delay: 0.8s; }
+    
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .detail-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, var(--dark-card), rgba(99, 102, 241, 0.05));
+    }
+    
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 10px;
+        margin-right: 15px;
+    }
+    
+    .detail-icon i {
+        font-size: 1.2rem;
+    }
+    
+    .detail-content {
+        flex: 1;
+    }
+    
+    .detail-label {
+        font-size: 0.8rem;
+        color: #e2e8f0; /* Light gray for dark backgrounds */
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+        display: block;
+        font-weight: 700;
+    }
+    
+    .detail-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ffffff; /* White for dark backgrounds */
+    }
+    
+    /* Student name visibility in welcome header */
+    .student-welcome-name {
+        color: #ffffff !important; /* White for dark gradient background */
+        font-weight: 700 !important;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Academic metric text - dark backgrounds */
+    .academic-metric {
+        text-align: center;
+        padding: 22px 20px;
+        background: linear-gradient(135deg, rgba(30,41,59,0.95) 0%, rgba(17,24,39,0.95) 100%);
+        border: 1px solid var(--dark-border);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    
+    .academic-metric:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .metric-value {
+        font-size: 2.4rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+    
+    .metric-label {
+        font-size: 0.95rem;
+        color: #cbd5e1; /* lighter slate */
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+    }
+    
+    .metric-status {
+        display: inline-block;
+        padding: 6px 10px;
+        margin-top: 6px;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: 1px solid transparent;
+        text-shadow: none;
+    }
+
+    /* status color pills */
+    .academic-metric .text-success { color: #10b981 !important; background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.25); }
+    .academic-metric .text-warning { color: #f59e0b !important; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.25); }
+    .academic-metric .text-danger  { color: #ef4444 !important; background: rgba(239,68,68,0.12);  border-color: rgba(239,68,68,0.25); }
+    
+    .factor-grid {
+        display: grid;
+        gap: 15px;
+    }
+    
+    .factor-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--dark-border);
+    }
+    
+    .factor-item:last-child {
+        border-bottom: none;
+    }
+    
+    .factor-label {
+        font-weight: 700;
+        color: #ffffff;
+    }
+    
+    .factor-value {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+    
+    .recommendations {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .recommendation-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 15px;
+        /* Increase contrast for readability on dark theme */
+        background: rgba(99, 102, 241, 0.15);
+        border-radius: 10px;
+        border-left: 4px solid var(--primary-color);
+        color: #ffffff; /* ensure text is clearly visible */
+        line-height: 1.4;
+        font-weight: 600;
+    }
+    
+    .recommendation-item i {
+        margin-top: 2px;
+    }
+
+    /* Ensure any nested text spans inherit the high-contrast color */
+    .recommendation-item span {
+        color: #ffffff;
+        font-weight: 600;
+    }
+    
+    .chart-container {
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chart-container h6 {
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    
+    #attendanceChart, #studyHoursChart, #performanceRadar {
+        flex: 1;
+        min-height: 300px;
+    }
+    
+    /* Enhanced text visibility for all elements */
+    .welcome-header p {
+        color: #e2e8f0 !important;
+        font-weight: 600;
+    }
+    
+    .alert p {
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+    
+    .alert h5 {
+        color: #ffffff !important;
+        font-weight: 700;
+    }
+    
+    /* Enhanced contrast for better accessibility */
+    .text-light {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    .text-muted {
+        color: #e2e8f0 !important; /* Light gray for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Card content visibility - dark backgrounds */
+    .card-body p, .card-body span, .card-body div {
+        color: #ffffff !important; /* White for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    .card-body small {
+        color: #e2e8f0 !important; /* Light gray for dark backgrounds */
+        font-weight: 600;
+    }
+    
+    /* Form controls - dark backgrounds */
+    .form-control {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        color: #ffffff; /* White text for dark background */
+    }
+    
+    .form-control:focus {
+        background: var(--dark-card);
+        border-color: var(--primary-color);
+        color: #ffffff; /* White text for dark background */
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+    
+    .form-label {
+        color: #ffffff; /* White text for dark backgrounds */
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    // Render attendance chart
+    const attendanceData = {{ attendance_chart | safe }};
+    Plotly.newPlot('attendanceChart', attendanceData.data, attendanceData.layout, {responsive: true});
+    
+    // Render bivariate study hours vs previous score chart
+    const studyVsScoreData = {{ study_vs_score_chart | safe }};
+    Plotly.newPlot('studyVsScoreChart', studyVsScoreData.data, studyVsScoreData.layout, {responsive: true});
+    
+    // Render performance radar chart
+    const performanceRadarData = {{ performance_radar | safe }};
+    Plotly.newPlot('performanceRadar', performanceRadarData.data, performanceRadarData.layout, {responsive: true});
+    
+    // Add hover effects to academic metrics
+    document.querySelectorAll('.academic-metric').forEach(metric => {
+        metric.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        metric.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Add animation to recommendations
+    document.querySelectorAll('.recommendation-item').forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'all 0.5s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, index * 200);
+    });
+</script>
+{% endblock %}

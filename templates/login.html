@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Login - EduPredict AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center min-vh-100 align-items-center">
+        <div class="col-lg-5 col-md-7">
+            <div class="login-container" data-aos="fade-up">
+                <!-- Logo and Title -->
+                <div class="text-center mb-4">
+                    <div class="logo-container mb-3">
+                        <i class="fas fa-graduation-cap fa-3x gradient-text"></i>
+                    </div>
+                    <h2 class="gradient-text fw-bold">Welcome Back</h2>
+                    <p class="text-muted">Sign in to access your dashboard</p>
+                </div>
+
+                <!-- Login Form -->
+                <div class="card">
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Username
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       placeholder="Enter your username" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>Password
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Enter your password" required>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Sign In
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Demo Accounts Info -->
+                <div class="text-center mt-4">
+                    <div class="demo-info">
+                        <h6 class="demo-title mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Demo Accounts
+                        </h6>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="demo-badge student">
+                                    <small>Student</small>
+                                    <div>student1</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="demo-badge teacher">
+                                    <small>Teacher</small>
+                                    <div>teacher1</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="demo-badge admin">
+                                    <small>Admin</small>
+                                    <div>admin</div>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="password-hint d-block mt-2">Password: student123 / teacher123 / admin123</small>
+                    </div>
+                </div>
+
+                <!-- Back to Home -->
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        animation: slideInUp 0.8s ease-out;
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .logo-container {
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    .demo-info {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .demo-title {
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .password-hint {
+        color: #e2e8f0 !important;
+        font-weight: 500;
+    }
+    
+    .demo-badge {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .demo-badge:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .demo-badge.student {
+        border-color: var(--primary-color);
+    }
+    
+    .demo-badge.teacher {
+        border-color: var(--warning-color);
+    }
+    
+    .demo-badge.admin {
+        border-color: var(--danger-color);
+    }
+    
+    .demo-badge small {
+        color: #ffffff !important;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 500;
+    }
+    
+    .demo-badge div {
+        font-weight: 600;
+        margin-top: 5px;
+        color: #ffffff !important;
+    }
+    
+    /* Make form labels more visible */
+    .form-label {
+        color: #ffffff !important;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    
+    /* Make the subtitle more visible */
+    .text-muted {
+        color: #e2e8f0 !important;
+        font-weight: 400;
+    }
+    
+    .form-control {
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        transform: scale(1.02);
+    }
+    
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* Floating particles background */
+    .login-container::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        left: -50px;
+        right: -50px;
+        bottom: -50px;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+        z-index: -1;
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        33% { transform: translateY(-20px) rotate(1deg); }
+        66% { transform: translateY(10px) rotate(-1deg); }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add input focus effects
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+        
+        // Add form submission animation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+            submitBtn.disabled = true;
+        });
+        
+        // Add typing effect to title
+        const title = document.querySelector('.gradient-text');
+        if (title) {
+            const text = title.textContent;
+            title.textContent = '';
+            title.style.display = 'inline-block';
+            
+            let i = 0;
+            const typeWriter = () => {
+                if (i < text.length) {
+                    title.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 100);
+                }
+            };
+            
+            setTimeout(typeWriter, 1000);
+        }
+    });
+</script>
+{% endblock %}

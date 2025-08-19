@@ -1,0 +1,43 @@
+STUDENT PERFORMANCE DATASET SUMMARY
+==================================================
+
+Total Students: 6,607
+Total Columns: 21
+Dataset Size: 744.6 KB
+
+GENDER DISTRIBUTION:
+  Male: 3,814 (57.7%)
+  Female: 2,793 (42.3%)
+
+AGE RANGE:
+  Min Age: 15.0
+  Max Age: 22.0
+  Average Age: 16.7
+
+PERFORMANCE STATISTICS:
+  Average Previous Score: 75.1
+  Average Attendance: 80.0%
+  Average Hours Studied: 20.0
+
+COLUMN LIST:
+   1. student_id
+   2. Full_Name
+   3. Gender
+   4. age
+   5. Previous_Scores
+   6. Attendance
+   7. Hours_Studied
+   8. Teacher_Feedback
+   9. Parental_Involvement
+  10. Access_to_Resources
+  11. Extracurricular_Activities
+  12. Sleep_Hours
+  13. Physical_Activity
+  14. Internet_Access
+  15. Tutoring_Sessions
+  16. Family_Income
+  17. School_Type
+  18. Peer_Influence
+  19. Learning_Disabilities
+  20. Parental_Education_Level
+  21. Distance_from_Home
